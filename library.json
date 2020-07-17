@@ -1,0 +1,24 @@
+{
+  "name": "BurpSerialization",
+  "keywords": "serialization json",
+  "description": "JSON serialization library",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/BurpTech/BurpSerialization"
+  },
+  "authors":
+  [
+    {
+      "name": "Peter Halliday",
+      "email": "pghalliday@gmail.com",
+      "url": "http://pghalliday.com",
+      "maintainer": true
+    }
+  ],
+  "dependencies": [
+  ],
+  "version": "1.0.0",
+  "frameworks": "*",
+  "platforms": "*"
+}
