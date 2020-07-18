@@ -34,7 +34,6 @@ namespace CBool {
         });
 
         d.beforeEach([]() {
-            cbool.setPresent(true);
             cbool.set(true);
             serializedDoc.clear();
         });
@@ -59,6 +58,7 @@ namespace CBool {
             d.describe("with a true value", [](Describe & d) {
                 d.it("should not fail and have the correct value", []() {
                     cbool.set(false);
+                    cbool.setNotPresent();
                     const BurpStatus::Status::Code code = cbool.deserialize(trueDoc[fieldName]);
                     TEST_ASSERT_TRUE(cbool.isPresent());
                     TEST_ASSERT_TRUE(cbool.get());
@@ -67,6 +67,8 @@ namespace CBool {
             });
             d.describe("with a false value", [](Describe & d) {
                 d.it("should not fail and have the correct value", []() {
+                    cbool.set(true);
+                    cbool.setNotPresent();
                     const BurpStatus::Status::Code code = cbool.deserialize(falseDoc[fieldName]);
                     TEST_ASSERT_TRUE(cbool.isPresent());
                     TEST_ASSERT_FALSE(cbool.get());
@@ -78,12 +80,13 @@ namespace CBool {
         d.describe("set", [](Describe & d) {
             d.it("should set the value and set present", []() {
                 cbool.set(false);
-                cbool.setPresent(false);
+                cbool.setNotPresent();
                 TEST_ASSERT_FALSE(cbool.isPresent());
+                TEST_ASSERT_FALSE(cbool.get());
                 cbool.set(true);
                 TEST_ASSERT_TRUE(cbool.isPresent());
                 TEST_ASSERT_TRUE(cbool.get());
-                cbool.setPresent(false);
+                cbool.setNotPresent();
                 TEST_ASSERT_FALSE(cbool.isPresent());
                 cbool.set(false);
                 TEST_ASSERT_TRUE(cbool.isPresent());
@@ -102,7 +105,7 @@ namespace CBool {
             d.describe("without a value", [](Describe & d) {
                 d.it("should set the value in the JSON document to NULL", []() {
                     serializedDoc[fieldName] = true;
-                    cbool.setPresent(false);
+                    cbool.setNotPresent();
                     const bool success = cbool.serialize(serializedDoc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);
                     TEST_ASSERT_TRUE(serializedDoc[fieldName].isNull());

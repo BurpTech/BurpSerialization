@@ -21,7 +21,7 @@ namespace BurpSerialization
         BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override;
         bool serialize(const JsonVariant & serialized) const override;
         bool isPresent() const;
-        void setPresent(const bool present);
+        void setNotPresent();
         bool get() const;
         void set(const bool value);
 

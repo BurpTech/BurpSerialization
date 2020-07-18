@@ -35,8 +35,8 @@ namespace BurpSerialization
         return _present;
     }
 
-    void CBool::setPresent(const bool present) {
-        _present = present;
+    void CBool::setNotPresent() {
+        _present = false;
     }
 
     bool CBool::get() const {
