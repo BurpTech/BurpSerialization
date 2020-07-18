@@ -44,6 +44,7 @@ namespace CBool {
                 d.it("should fail and not be present", []() {
                     const BurpStatus::Status::Code code = cbool.deserialize(emptyDoc[fieldName]);
                     TEST_ASSERT_FALSE(cbool.isPresent());
+                    TEST_ASSERT_FALSE(cbool.get());
                     TEST_ASSERT_EQUAL(notPresent, code);
                 });
             });
@@ -51,6 +52,7 @@ namespace CBool {
                 d.it("should fail and not be present", []() {
                     const BurpStatus::Status::Code code = cbool.deserialize(invalidDoc[fieldName]);
                     TEST_ASSERT_FALSE(cbool.isPresent());
+                    TEST_ASSERT_FALSE(cbool.get());
                     TEST_ASSERT_EQUAL(wrongType, code);
                 });
             });
@@ -58,6 +60,7 @@ namespace CBool {
                 d.it("should not fail and have the correct value", []() {
                     cbool.set(false);
                     const BurpStatus::Status::Code code = cbool.deserialize(trueDoc[fieldName]);
+                    TEST_ASSERT_TRUE(cbool.isPresent());
                     TEST_ASSERT_TRUE(cbool.get());
                     TEST_ASSERT_EQUAL(ok, code);
                 });
@@ -65,9 +68,26 @@ namespace CBool {
             d.describe("with a false value", [](Describe & d) {
                 d.it("should not fail and have the correct value", []() {
                     const BurpStatus::Status::Code code = cbool.deserialize(falseDoc[fieldName]);
+                    TEST_ASSERT_TRUE(cbool.isPresent());
                     TEST_ASSERT_FALSE(cbool.get());
                     TEST_ASSERT_EQUAL(ok, code);
                 });
+            });
+        });
+
+        d.describe("set", [](Describe & d) {
+            d.it("should set the value and set present", []() {
+                cbool.set(false);
+                cbool.setPresent(false);
+                TEST_ASSERT_FALSE(cbool.isPresent());
+                cbool.set(true);
+                TEST_ASSERT_TRUE(cbool.isPresent());
+                TEST_ASSERT_TRUE(cbool.get());
+                cbool.setPresent(false);
+                TEST_ASSERT_FALSE(cbool.isPresent());
+                cbool.set(false);
+                TEST_ASSERT_TRUE(cbool.isPresent());
+                TEST_ASSERT_FALSE(cbool.get());
             });
         });
 
@@ -90,7 +110,6 @@ namespace CBool {
             });
             d.describe("with a true value", [](Describe & d) {
                 d.it("should set the value in the JSON document", []() {
-                    cbool.setPresent(true);
                     cbool.set(true);
                     const bool success = cbool.serialize(serializedDoc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);
@@ -99,7 +118,6 @@ namespace CBool {
             });
             d.describe("with a false value", [](Describe & d) {
                 d.it("should set the value in the JSON document", []() {
-                    cbool.setPresent(true);
                     cbool.set(false);
                     const bool success = cbool.serialize(serializedDoc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);

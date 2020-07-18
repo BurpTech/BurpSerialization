@@ -11,6 +11,7 @@ namespace BurpSerialization
 
     BurpStatus::Status::Code CBool::deserialize(const JsonVariant & serialized) {
         _present = false;
+        _value = false;
         if (serialized.isNull()) {
             return _statusCodes.notPresent;
         }
@@ -43,6 +44,7 @@ namespace BurpSerialization
     }
 
     void CBool::set(const bool value) {
+        _present = true;
         _value = value;
     }
 
