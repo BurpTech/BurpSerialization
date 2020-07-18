@@ -20,15 +20,15 @@ namespace BurpSerialization
 
         BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override;
         bool serialize(const JsonVariant & serialized) const override;
-        bool exists() const;
-        void exists(const bool exists);
+        bool isPresent() const;
+        void setPresent(const bool present);
         bool get() const;
         void set(const bool value);
 
     private:
 
         bool _value;
-        bool _exists;
+        bool _present;
         const StatusCodes _statusCodes;
 
     };

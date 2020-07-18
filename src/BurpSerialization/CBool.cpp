@@ -5,17 +5,17 @@ namespace BurpSerialization
 
     CBool::CBool(const StatusCodes statusCodes) :
         _value(false),
-        _exists(false),
+        _present(false),
         _statusCodes(statusCodes)
     {}
 
     BurpStatus::Status::Code CBool::deserialize(const JsonVariant & serialized) {
-        _exists = false;
+        _present = false;
         if (serialized.isNull()) {
             return _statusCodes.notPresent;
         }
         if (serialized.is<bool>()) {
-            _exists = true;
+            _present = true;
             _value = serialized.as<bool>();
             return _statusCodes.ok;
         }
@@ -23,19 +23,19 @@ namespace BurpSerialization
     }
 
     bool CBool::serialize(const JsonVariant & serialized) const {
-        if (_exists) {
+        if (_present) {
             return serialized.set(_value);
         }
         serialized.clear();
         return true;
     }
 
-    bool CBool::exists() const {
-        return _exists;
+    bool CBool::isPresent() const {
+        return _present;
     }
 
-    void CBool::exists(const bool exists) {
-        _exists = exists;
+    void CBool::setPresent(const bool present) {
+        _present = present;
     }
 
     bool CBool::get() const {
