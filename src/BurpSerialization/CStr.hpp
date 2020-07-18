@@ -11,16 +11,16 @@ namespace BurpSerialization
     public:
 
         struct StatusCodes {
-            BurpStatus::Status::Code ok;
-            BurpStatus::Status::Code notPresent; // not used if not required
-            BurpStatus::Status::Code wrongType;
-            BurpStatus::Status::Code tooLong;
+            const BurpStatus::Status::Code ok;
+            const BurpStatus::Status::Code notPresent; // not used if not required
+            const BurpStatus::Status::Code wrongType;
+            const BurpStatus::Status::Code tooLong;
         };
 
         CStr(const size_t length, const bool required, const StatusCodes statusCodes);
 
-        const BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override;
-        void serialize(const JsonVariant & serialized) const override;
+        BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override;
+        bool serialize(const JsonVariant & serialized) const override;
         const char * get() const;
         void set(const char * value);
 

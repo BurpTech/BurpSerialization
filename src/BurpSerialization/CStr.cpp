@@ -9,7 +9,7 @@ namespace BurpSerialization
         _statusCodes(statusCodes)
     {}
 
-    const BurpStatus::Status::Code CStr::deserialize(const JsonVariant & serialized) {
+    BurpStatus::Status::Code CStr::deserialize(const JsonVariant & serialized) {
         _value = nullptr;
         if (serialized.isNull()) {
             if (_required) {
@@ -22,12 +22,14 @@ namespace BurpSerialization
             if (strlen(value) > _length) {
                 return _statusCodes.tooLong;
             }
+            _value = value;
             return _statusCodes.ok;
         }
         return _statusCodes.wrongType;
     }
 
-    void CStr::serialize(const JsonVariant & serialized) const {
+    bool CStr::serialize(const JsonVariant & serialized) const {
+        return serialized.set(_value);
     }
 
     const char * CStr::get() const {

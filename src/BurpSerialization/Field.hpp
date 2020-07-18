@@ -10,8 +10,8 @@ namespace BurpSerialization
 
     public:
 
-        virtual const BurpStatus::Status::Code deserialize(const JsonVariant & serialized) = 0;
-        virtual void serialize(const JsonVariant & serialized) const = 0;
+        virtual BurpStatus::Status::Code deserialize(const JsonVariant & serialized) = 0;
+        virtual bool serialize(const JsonVariant & serialized) const = 0;
 
     };
     
