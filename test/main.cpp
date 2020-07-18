@@ -24,9 +24,11 @@
 #include <BurpUnity.hpp>
 
 #include "CStr.hpp"
+#include "CBool.hpp"
 
-Runner<1> runner({
-    &CStr::tests
+Runner<2> runner({
+    &CStr::tests,
+    &CBool::tests
 });
 Memory memory;
 bool running = true;

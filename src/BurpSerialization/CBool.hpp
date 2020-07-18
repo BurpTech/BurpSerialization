@@ -5,7 +5,7 @@
 namespace BurpSerialization
 {
 
-    class CStr : public Field
+    class CBool : public Field
     {
 
     public:
@@ -14,20 +14,21 @@ namespace BurpSerialization
             const BurpStatus::Status::Code ok;
             const BurpStatus::Status::Code notPresent; // set to ok if not required
             const BurpStatus::Status::Code wrongType;
-            const BurpStatus::Status::Code tooLong;
         };
 
-        CStr(const size_t length, const StatusCodes statusCodes);
+        CBool(const StatusCodes statusCodes);
 
         BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override;
         bool serialize(const JsonVariant & serialized) const override;
-        const char * get() const;
-        void set(const char * value);
+        bool exists() const;
+        void exists(const bool exists);
+        bool get() const;
+        void set(const bool value);
 
     private:
 
-        const char * _value;
-        const size_t _length;
+        bool _value;
+        bool _exists;
         const StatusCodes _statusCodes;
 
     };

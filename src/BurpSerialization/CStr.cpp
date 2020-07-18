@@ -3,19 +3,16 @@
 namespace BurpSerialization
 {
 
-    CStr::CStr(const size_t length, const bool required, const StatusCodes statusCodes) :
+    CStr::CStr(const size_t length, const StatusCodes statusCodes) :
+        _value(nullptr),
         _length(length),
-        _required(required),
         _statusCodes(statusCodes)
     {}
 
     BurpStatus::Status::Code CStr::deserialize(const JsonVariant & serialized) {
         _value = nullptr;
         if (serialized.isNull()) {
-            if (_required) {
-                return _statusCodes.notPresent;
-            }
-            return _statusCodes.ok;
+            return _statusCodes.notPresent;
         }
         if (serialized.is<const char *>()) {
             const char * value = serialized.as<const char *>();
