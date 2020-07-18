@@ -25,10 +25,12 @@
 
 #include "CStr.hpp"
 #include "CBool.hpp"
+#include "Object.hpp"
 
-Runner<2> runner({
+Runner<3> runner({
     &CStr::tests,
-    &CBool::tests
+    &CBool::tests,
+    &Object::tests
 });
 Memory memory;
 bool running = true;
