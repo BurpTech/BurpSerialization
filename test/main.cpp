@@ -26,11 +26,13 @@
 #include "CStr.hpp"
 #include "CBool.hpp"
 #include "Object.hpp"
+#include "Array.hpp"
 
-Runner<3> runner({
+Runner<4> runner({
     &CStr::tests,
     &CBool::tests,
-    &Object::tests
+    &Object::tests,
+    &Array::tests
 });
 Memory memory;
 bool running = true;

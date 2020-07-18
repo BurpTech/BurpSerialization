@@ -1,5 +1,6 @@
 #include <unity.h>
 #include "../src/BurpSerialization/Object.hpp"
+#include "TestField.hpp"
 #include "Object.hpp"
 
 namespace Object {
@@ -25,46 +26,17 @@ namespace Object {
         fieldThreeWrongType
     };
 
-    class Field : public BurpSerialization::Field {
-        public:
-            struct StatusCodes {
-                BurpStatus::Status::Code ok;
-                BurpStatus::Status::Code notPresent;
-                BurpStatus::Status::Code wrongType;
-            };
-            const StatusCodes statusCodes;
-            const char * value;
-            Field(const StatusCodes statusCodes) :
-                statusCodes(statusCodes),
-                value(nullptr)
-            {}
-            BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override {
-                value = nullptr;
-                if (serialized.isNull()) {
-                    return statusCodes.notPresent;
-                }
-                if (serialized.is<const char *>()) {
-                    value = serialized.as<const char *>();
-                    return statusCodes.ok;
-                }
-                return statusCodes.wrongType;
-            }
-            bool serialize(const JsonVariant & serialized) const override {
-                return serialized.set(value);
-            }
-    };
-
-    Field fieldOne({
+    TestField fieldOne({
         ok,
         fieldOneNotPresent,
         fieldOneWrongType
     });
-    Field fieldTwo({
+    TestField fieldTwo({
         ok,
         fieldTwoNotPresent,
         fieldTwoWrongType
     });
-    Field fieldThree({
+    TestField fieldThree({
         ok,
         fieldThreeNotPresent,
         fieldThreeWrongType
@@ -103,9 +75,9 @@ namespace Object {
 
         d.beforeEach([]() {
             serializedDoc.clear();
-            fieldOne.value = nullptr;
-            fieldTwo.value = nullptr;
-            fieldThree.value = nullptr;
+            fieldOne.set(nullptr);
+            fieldTwo.set(nullptr);
+            fieldThree.set(nullptr);
         });
 
         d.describe("deserialize", [](Describe & d) {
@@ -141,9 +113,9 @@ namespace Object {
                 d.it("should have the correct values", []() {
                     const BurpStatus::Status::Code code = object.deserialize(validDoc[fieldName]);
                     TEST_ASSERT_TRUE(object.isPresent());
-                    TEST_ASSERT_EQUAL_STRING(validOneValue, fieldOne.value);
-                    TEST_ASSERT_EQUAL_STRING(validTwoValue, fieldTwo.value);
-                    TEST_ASSERT_EQUAL_STRING(validThreeValue, fieldThree.value);
+                    TEST_ASSERT_EQUAL_STRING(validOneValue, fieldOne.get());
+                    TEST_ASSERT_EQUAL_STRING(validTwoValue, fieldTwo.get());
+                    TEST_ASSERT_EQUAL_STRING(validThreeValue, fieldThree.get());
                 });
             });
         });
@@ -152,9 +124,9 @@ namespace Object {
             d.describe("with a value that is too big for the document", [](Describe & d) {
                 d.it("should fail", []() {
                     object.setPresent(true);
-                    fieldOne.value = validOneValue;
-                    fieldTwo.value = validTwoValue;
-                    fieldThree.value = validThreeValue;
+                    fieldOne.set(validOneValue);
+                    fieldTwo.set(validTwoValue);
+                    fieldThree.set(validThreeValue);
                     const bool success = object.serialize(tinyDoc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_FALSE(success);
                 });
@@ -170,9 +142,9 @@ namespace Object {
             d.describe("with values", [](Describe & d) {
                 d.it("should set the value in the JSON document", []() {
                     object.setPresent(true);
-                    fieldOne.value = validOneValue;
-                    fieldTwo.value = validTwoValue;
-                    fieldThree.value = validThreeValue;
+                    fieldOne.set(validOneValue);
+                    fieldTwo.set(validTwoValue);
+                    fieldThree.set(validThreeValue);
                     const bool success = object.serialize(serializedDoc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);
                     TEST_ASSERT_EQUAL_STRING(validOneValue, serializedDoc[fieldName][fieldOneName]);

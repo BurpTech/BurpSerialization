@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Field.hpp"
+#include "TypedField.hpp"
 
 namespace BurpSerialization
 {
 
-    class CBool : public Field
+    class CBool : public TypedField<bool>
     {
 
     public:
@@ -22,8 +22,8 @@ namespace BurpSerialization
         bool serialize(const JsonVariant & serialized) const override;
         bool isPresent() const;
         void setNotPresent();
-        bool get() const;
-        void set(const bool value);
+        bool get() const override;
+        void set(const bool value) override;
 
     private:
 
