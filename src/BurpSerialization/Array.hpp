@@ -7,18 +7,20 @@ namespace BurpSerialization
 {
 
     template <class Type, size_t length>
-    class Array : public TypedField<std::array<Type, length>>
+    class Array : public TypedField<std::array<Type, length + 1>>
     {
 
     public:
 
-        using List = std::array<Type, length>;
+        // length + 1 as we are using this as a zero terminated array
+        using List = std::array<Type, length + 1>;
 
         struct StatusCodes {
             const BurpStatus::Status::Code ok;
             const BurpStatus::Status::Code notPresent; // set to ok if not required
             const BurpStatus::Status::Code wrongType;
             const BurpStatus::Status::Code tooLong;
+            const BurpStatus::Status::Code zeroEntry;
         };
 
         Array(TypedField<Type> & field, const StatusCodes statusCodes) :
@@ -42,7 +44,10 @@ namespace BurpSerialization
                 for (size_t index = 0; index < size; index++) {
                     const BurpStatus::Status::Code code = _field.deserialize(jsonArray[index]);
                     if (code != _statusCodes.ok) return code;
-                    _list[index] = _field.get();
+                    const auto entry = _field.get();
+                    // array is zero terminated so should not contain any zeros
+                    if (!entry) return _statusCodes.zeroEntry;
+                    _list[index] = entry;
                 }
                 _present = true;
                 return _statusCodes.ok;
@@ -54,9 +59,12 @@ namespace BurpSerialization
             if (_present) {
                 const JsonArray jsonArray = serialized.to<JsonArray>();
                 for (auto entry : _list) {
+                    // Zero terminated so return true when no more entries
+                    if (!entry) return true;
                     if (!jsonArray.add(entry)) return false;
                 }
-                return true;
+                // not zero teminated
+                return false;
             }
             serialized.clear();
             return true;

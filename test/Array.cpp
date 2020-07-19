@@ -20,13 +20,13 @@ namespace Array {
         notPresent,
         wrongType,
         tooLong,
-        fieldNotPresent,
+        zeroEntry,
         fieldWrongType
     };
 
     TestField field({
         ok,
-        fieldNotPresent,
+        ok,
         fieldWrongType
     });
     using Array = BurpSerialization::Array<const char *, length>;
@@ -34,7 +34,8 @@ namespace Array {
         ok,
         notPresent,
         wrongType,
-        tooLong
+        tooLong,
+        zeroEntry
     });
 
     StaticJsonDocument<256> emptyDoc;
@@ -47,7 +48,16 @@ namespace Array {
     StaticJsonDocument<256> serializedDoc;
     StaticJsonDocument<1> tinyDoc;
 
-    Array::List validList = {
+    Array::List longList = {
+        validValue1,
+        validValue2,
+        validValue3,
+        validValue4,
+        validValue5,
+        validValue6
+    };
+
+    Array::List fullList = {
         validValue1,
         validValue2,
         validValue3,
@@ -118,7 +128,7 @@ namespace Array {
                 d.it("should fail and not be present", []() {
                     const BurpStatus::Status::Code code = array.deserialize(missingFieldDoc[fieldName]);
                     TEST_ASSERT_FALSE(array.isPresent());
-                    TEST_ASSERT_EQUAL(fieldNotPresent, code);
+                    TEST_ASSERT_EQUAL(zeroEntry, code);
                 });
             });
             d.describe("when an array entry is invalid", [](Describe & d) {
@@ -128,13 +138,13 @@ namespace Array {
                     TEST_ASSERT_EQUAL(fieldWrongType, code);
                 });
             });
-            d.describe("with a valid array", [](Describe & d) {
+            d.describe("with a full array", [](Describe & d) {
                 d.it("should have the correct values", []() {
                     const BurpStatus::Status::Code code = array.deserialize(validDoc[fieldName]);
                     TEST_ASSERT_TRUE(array.isPresent());
                     const auto list = array.get();
                     for (size_t index = 0; index < length; index++) {
-                        TEST_ASSERT_EQUAL_STRING(validList[index], list[index]);
+                        TEST_ASSERT_EQUAL_STRING(fullList[index], list[index]);
                     }
                 });
             });
@@ -153,7 +163,7 @@ namespace Array {
         d.describe("serialize", [](Describe & d) {
             d.describe("with a value that is too big for the document", [](Describe & d) {
                 d.it("should fail", []() {
-                    array.set(validList);
+                    array.set(fullList);
                     const bool success = array.serialize(tinyDoc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_FALSE(success);
                 });
@@ -166,9 +176,16 @@ namespace Array {
                     TEST_ASSERT_TRUE(serializedDoc[fieldName].isNull());
                 });
             });
-            d.describe("with values", [](Describe & d) {
+            d.describe("with a long list of values", [](Describe & d) {
+                d.it("should fail", []() {
+                    array.set(longList);
+                    const bool success = array.serialize(serializedDoc[fieldName].to<JsonVariant>());
+                    TEST_ASSERT_FALSE(success);
+                });
+            });
+            d.describe("with a full list of values", [](Describe & d) {
                 d.it("should set the value in the JSON document", []() {
-                    array.set(validList);
+                    array.set(fullList);
                     const bool success = array.serialize(serializedDoc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);
                     TEST_ASSERT_EQUAL_STRING(validValue1, serializedDoc[fieldName][0]);
@@ -176,6 +193,19 @@ namespace Array {
                     TEST_ASSERT_EQUAL_STRING(validValue3, serializedDoc[fieldName][2]);
                     TEST_ASSERT_EQUAL_STRING(validValue4, serializedDoc[fieldName][3]);
                     TEST_ASSERT_EQUAL_STRING(validValue5, serializedDoc[fieldName][4]);
+                    TEST_ASSERT_TRUE(serializedDoc[fieldName][5].isNull());
+                });
+            });
+            d.describe("with a short list of values", [](Describe & d) {
+                d.it("should set the value in the JSON document", []() {
+                    array.set(shortList);
+                    const bool success = array.serialize(serializedDoc[fieldName].to<JsonVariant>());
+                    TEST_ASSERT_TRUE(success);
+                    TEST_ASSERT_EQUAL_STRING(validValue1, serializedDoc[fieldName][0]);
+                    TEST_ASSERT_EQUAL_STRING(validValue2, serializedDoc[fieldName][1]);
+                    TEST_ASSERT_EQUAL_STRING(validValue3, serializedDoc[fieldName][2]);
+                    TEST_ASSERT_EQUAL_STRING(validValue4, serializedDoc[fieldName][3]);
+                    TEST_ASSERT_TRUE(serializedDoc[fieldName][4].isNull());
                 });
             });
         });
