@@ -25,14 +25,16 @@
 
 #include "CStr.hpp"
 #include "CBool.hpp"
+#include "UInt8.hpp"
 #include "Object.hpp"
-#include "Array.hpp"
+#include "PWMLevels.hpp"
 
-Runner<4> runner({
+Runner<5> runner({
     &CStr::tests,
     &CBool::tests,
+    &UInt8::tests,
     &Object::tests,
-    &Array::tests
+    &PWMLevels::tests
 });
 Memory memory;
 bool running = true;

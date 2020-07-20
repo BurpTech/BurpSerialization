@@ -69,7 +69,7 @@ namespace Object {
         &validTwoValue,
         &validThreeValue
     };
-    BurpSerialization::Value validValue = {.list=validList.data()};
+    BurpSerialization::Value validValue = {.valueList=validList.data()};
 
     Module tests("Object", [](Describe & d) {
         d.before([]() {
@@ -125,11 +125,11 @@ namespace Object {
                     auto code = object.deserialize(validDoc[fieldName]);
                     auto value = object.get();
                     TEST_ASSERT_NOT_NULL(value);
-                    auto valueOne = value->list[0];
+                    auto valueOne = value->valueList[0];
                     TEST_ASSERT_NOT_NULL(valueOne);
-                    auto valueTwo = value->list[1];
+                    auto valueTwo = value->valueList[1];
                     TEST_ASSERT_NOT_NULL(valueTwo);
-                    auto valueThree = value->list[2];
+                    auto valueThree = value->valueList[2];
                     TEST_ASSERT_NOT_NULL(valueThree);
                     TEST_ASSERT_EQUAL_STRING(validOneCStr, valueOne->cstr);
                     TEST_ASSERT_EQUAL_STRING(validTwoCStr, valueTwo->cstr);

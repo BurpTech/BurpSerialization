@@ -28,7 +28,7 @@ namespace BurpSerialization
         Object(const Entries entries, const StatusCodes statusCodes) :
             _entries(entries),
             _list({}),
-            _value({.list=_list.data()}),
+            _value({.valueList=_list.data()}),
             _present(false),
             _statusCodes(statusCodes)
         {}
@@ -72,9 +72,9 @@ namespace BurpSerialization
         }
 
         void set(const Value * value) override {
-            if (value && value->list) {
+            if (value && value->valueList) {
                 _present = true;
-                std::copy_n(value->list, entryCount, _list.begin());
+                std::copy_n(value->valueList, _list.size(), _list.begin());
             } else {
                 _present = false;
             }

@@ -2,7 +2,7 @@
 
 #include <BurpUnity.hpp>
 
-namespace Array {
+namespace PWMLevels {
     
   extern Module tests;
 
