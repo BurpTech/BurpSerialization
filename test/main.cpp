@@ -26,13 +26,15 @@
 #include "CStr.hpp"
 #include "CBool.hpp"
 #include "UInt8.hpp"
+#include "UInt32.hpp"
 #include "Object.hpp"
 #include "PWMLevels.hpp"
 
-Runner<5> runner({
+Runner<6> runner({
     &CStr::tests,
     &CBool::tests,
     &UInt8::tests,
+    &UInt32::tests,
     &Object::tests,
     &PWMLevels::tests
 });
