@@ -1,11 +1,11 @@
 #pragma once
 
-#include "TypedField.hpp"
+#include "Field.hpp"
 
 namespace BurpSerialization
 {
 
-    class CStr : public TypedField<const char *>
+    class CStr : public Field
     {
 
     public:
@@ -21,12 +21,12 @@ namespace BurpSerialization
 
         BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override;
         bool serialize(const JsonVariant & serialized) const override;
-        const char * get() const override;
-        void set(const char * value) override;
+        const Value * get() const override;
+        void set(const Value * value) override;
 
     private:
 
-        const char * _value;
+        Value _value;
         const size_t _length;
         const StatusCodes _statusCodes;
 

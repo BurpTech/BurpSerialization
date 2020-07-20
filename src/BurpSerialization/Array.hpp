@@ -1,30 +1,30 @@
 #pragma once
 
-#include <array>
-#include "TypedField.hpp"
+#include "ValueList.hpp"
+#include "Field.hpp"
 
 namespace BurpSerialization
 {
 
-    template <class Type, size_t length>
-    class Array : public TypedField<std::array<Type, length + 1>>
+    template <size_t length>
+    class Array : public Field
     {
 
     public:
 
-        // length + 1 as we are using this as a zero terminated array
-        using List = std::array<Type, length + 1>;
+        using List = ValueList<length>;
 
         struct StatusCodes {
             const BurpStatus::Status::Code ok;
             const BurpStatus::Status::Code notPresent; // set to ok if not required
             const BurpStatus::Status::Code wrongType;
             const BurpStatus::Status::Code tooLong;
-            const BurpStatus::Status::Code zeroEntry;
         };
 
-        Array(TypedField<Type> & field, const StatusCodes statusCodes) :
+        Array(Field & field, const StatusCodes statusCodes) :
             _field(field),
+            _list({}),
+            _value({.list=_list.data()}),
             _present(false),
             _statusCodes(statusCodes)
         {}
@@ -36,18 +36,15 @@ namespace BurpSerialization
                 return _statusCodes.notPresent;
             }
             if (serialized.is<JsonArray>()) {
-                const auto jsonArray = serialized.as<JsonArray>();
-                const auto size = jsonArray.size();
+                auto jsonArray = serialized.as<JsonArray>();
+                auto size = jsonArray.size();
                 if (size > length) {
                     return _statusCodes.tooLong;
                 }
                 for (size_t index = 0; index < size; index++) {
-                    const BurpStatus::Status::Code code = _field.deserialize(jsonArray[index]);
+                    auto code = _field.deserialize(jsonArray[index]);
                     if (code != _statusCodes.ok) return code;
-                    const auto entry = _field.get();
-                    // array is zero terminated so should not contain any zeros
-                    if (!entry) return _statusCodes.zeroEntry;
-                    _list[index] = entry;
+                    _list[index] = _field.get();
                 }
                 _present = true;
                 return _statusCodes.ok;
@@ -57,40 +54,38 @@ namespace BurpSerialization
 
         bool serialize(const JsonVariant & serialized) const override {
             if (_present) {
-                const JsonArray jsonArray = serialized.to<JsonArray>();
-                for (auto entry : _list) {
-                    // Zero terminated so return true when no more entries
-                    if (!entry) return true;
-                    if (!jsonArray.add(entry)) return false;
+                auto jsonArray = serialized.to<JsonArray>();
+                for (size_t index = 0; index < length; index++) {
+                    _field.set(_list[index]);
+                    if (!_field.serialize(jsonArray[index])) return false;
                 }
-                // not zero teminated
-                return false;
+                return true;
             }
             serialized.clear();
             return true;
         }
 
-        bool isPresent() const {
-            return _present;
+        const Value * get() const override {
+            if (_present) {
+                return &_value;
+            }
+            return nullptr;
         }
 
-        void setNotPresent() {
-            _present = false;
-        }
-
-        List get() const override {
-            return _list;
-        }
-
-        void set(const List list) override {
-            _present = true;
-            _list = list;
+        void set(const Value * value) override {
+            if (value && value->list) {
+                _present = true;
+                std::copy_n(value->list, length, _list.begin());
+            } else {
+                _present = false;
+            }
         }
 
     private:
 
-        TypedField<Type> & _field;
+        Field & _field;
         List _list;
+        const Value _value;
         bool _present;
         const StatusCodes _statusCodes;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <array>
+#include "ValueList.hpp"
 #include "Field.hpp"
 
 namespace BurpSerialization
@@ -23,9 +23,12 @@ namespace BurpSerialization
             Field * field;
         };
         using Entries = std::array<Entry, entryCount>;
+        using List = ValueList<entryCount>;
 
         Object(const Entries entries, const StatusCodes statusCodes) :
             _entries(entries),
+            _list({}),
+            _value({.list=_list.data()}),
             _present(false),
             _statusCodes(statusCodes)
         {}
@@ -36,9 +39,11 @@ namespace BurpSerialization
                 return _statusCodes.notPresent;
             }
             if (serialized.is<JsonObject>()) {
-                for (auto entry : _entries) {
-                    const BurpStatus::Status::Code code = entry.field->deserialize(serialized[entry.name]);
+                for (size_t index = 0; index < entryCount; index++) {
+                    auto entry = _entries[index];
+                    auto code = entry.field->deserialize(serialized[entry.name]);
                     if (code != _statusCodes.ok) return code;
+                    _list[index] = entry.field->get();
                 }
                 _present = true;
                 return _statusCodes.ok;
@@ -48,9 +53,10 @@ namespace BurpSerialization
 
         bool serialize(const JsonVariant & serialized) const override {
             if (_present) {
-                for (auto entry : _entries) {
-                    const bool success = entry.field->serialize(serialized[entry.name].template to<JsonVariant>());
-                    if (!success) return false;
+                for (size_t index = 0; index < entryCount; index++) {
+                    auto entry = _entries[index];
+                    entry.field->set(_list[index]);
+                    if (!entry.field->serialize(serialized[entry.name].template to<JsonVariant>())) return false;
                 }
                 return true;
             }
@@ -58,17 +64,27 @@ namespace BurpSerialization
             return true;
         }
 
-        bool isPresent() const {
-            return _present;
+        const Value * get() const override {
+            if (_present) {
+                return &_value;
+            }
+            return nullptr;
         }
 
-        void setPresent(const bool present) {
-            _present = present;
+        void set(const Value * value) override {
+            if (value && value->list) {
+                _present = true;
+                std::copy_n(value->list, entryCount, _list.begin());
+            } else {
+                _present = false;
+            }
         }
 
     private:
 
         const Entries _entries;
+        List _list;
+        const Value _value;
         bool _present;
         const StatusCodes _statusCodes;
 

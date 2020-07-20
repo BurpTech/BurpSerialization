@@ -1,6 +1,6 @@
-#include "../src/BurpSerialization/TypedField.hpp"
+#include "../src/BurpSerialization/Field.hpp"
 
-class TestField : public BurpSerialization::TypedField<const char *> {
+class TestField : public BurpSerialization::Field {
 
     public:
 
@@ -13,12 +13,12 @@ class TestField : public BurpSerialization::TypedField<const char *> {
         TestField(const StatusCodes statusCodes);
         BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override;
         bool serialize(const JsonVariant & serialized) const override;
-        const char * get() const override;
-        void set(const char * value) override;
+        const BurpSerialization::Value * get() const override;
+        void set(const BurpSerialization::Value * value) override;
 
     private:
 
         const StatusCodes _statusCodes;
-        const char * _value;
+        BurpSerialization::Value _value;
 
 };
