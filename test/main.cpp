@@ -29,14 +29,16 @@
 #include "UInt32.hpp"
 #include "Object.hpp"
 #include "PWMLevels.hpp"
+#include "IPv4.hpp"
 
-Runner<6> runner({
+Runner<7> runner({
     &CStr::tests,
     &CBool::tests,
     &UInt8::tests,
     &UInt32::tests,
     &Object::tests,
-    &PWMLevels::tests
+    &PWMLevels::tests,
+    &IPv4::tests
 });
 Memory memory;
 bool running = true;
