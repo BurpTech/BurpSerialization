@@ -14,11 +14,10 @@ namespace BurpSerialization
             const BurpStatus::Status::Code ok;
             const BurpStatus::Status::Code notPresent; // set to ok if not required
             const BurpStatus::Status::Code wrongType;
-            const BurpStatus::Status::Code parseError;
+            const BurpStatus::Status::Code invalidCharacter;
             const BurpStatus::Status::Code outOfRange;
-            const BurpStatus::Status::Code missingByte;
-            const BurpStatus::Status::Code tooFewBytes;
-            const BurpStatus::Status::Code tooManyBytes;
+            const BurpStatus::Status::Code missingField;
+            const BurpStatus::Status::Code excessCharacters;
         };
 
         IPv4(const StatusCodes statusCodes);

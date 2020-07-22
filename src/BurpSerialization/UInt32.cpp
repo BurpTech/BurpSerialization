@@ -11,7 +11,7 @@ namespace BurpSerialization
 
     BurpStatus::Status::Code UInt32::deserialize(const JsonVariant & serialized) {
         _present = false;
-        _value.uint32 = false;
+        _value.uint32 = 0;
         if (serialized.isNull()) {
             return _statusCodes.notPresent;
         }
