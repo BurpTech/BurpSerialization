@@ -2,6 +2,7 @@
 
 namespace BurpSerialization
 {
+
     char * uint8ToStr(uint8_t src, char * dest) {
         uint8_t ones = src % 10;
         uint8_t tens = (src - ones) % 100;
@@ -54,69 +55,50 @@ namespace BurpSerialization
     }
 
     IPv4::IPv4(const StatusCodes statusCodes) :
-        _value({.uint32=0}),
-        _present(false),
         _statusCodes(statusCodes)
     {}
 
-    BurpStatus::Status::Code IPv4::deserialize(const JsonVariant & serialized) {
-        _present = false;
-        _value.uint32 = 0;
-        if (serialized.isNull()) {
+    BurpStatus::Status::Code IPv4::deserialize(Value & dest, const JsonVariant & src) {
+        dest.isNull = true;
+        if (src.isNull()) {
             return _statusCodes.notPresent;
         }
-        if (serialized.is<const char *>()) {
-            auto code = strToIPv4(serialized.as<const char *>(), &(_value.uint32), _statusCodes);
+        if (src.is<const char *>()) {
+            auto code = strToIPv4(src.as<const char *>(), &(dest.uint32), _statusCodes);
             if (code != _statusCodes.ok) return code;
-            _present = true;
+            dest.isNull = false;
             return _statusCodes.ok;
         }
         return _statusCodes.wrongType;
     }
 
-    bool IPv4::serialize(const JsonVariant & serialized) const {
-        if (_present) {
-            char szIP[16] = {};
-            char * ptr = szIP;
-            uint32_t temp1 = _value.uint32;
-            uint32_t temp2 = temp1 >> 8;
-            uint32_t byte4 = temp1 - (temp2 << 8);
-            temp1 = temp2 >> 8;
-            uint32_t byte3 = temp2 - (temp1 << 8);
-            temp2 = temp1 >> 8;
-            uint32_t byte2 = temp1 - (temp2 << 8);
-            temp1 = temp2 >> 8;
-            uint32_t byte1 = temp2 - (temp1 << 8);
-            ptr = uint8ToStr(byte1, ptr);
-            *ptr = '.';
-            ptr++;
-            ptr = uint8ToStr(byte2, ptr);
-            *ptr = '.';
-            ptr++;
-            ptr = uint8ToStr(byte3, ptr);
-            *ptr = '.';
-            ptr++;
-            ptr = uint8ToStr(byte4, ptr);
-            return serialized.set(szIP);
+    bool IPv4::serialize(const JsonVariant & dest, const Value & src) const {
+        if (src.isNull) {
+            dest.clear();
+            return true;
         }
-        serialized.clear();
-        return true;
-    }
-
-    const Value * IPv4::get() const {
-        if (_present) {
-            return &_value;
-        }
-        return nullptr;
-    }
-
-    void IPv4::set(const Value * value) {
-        if (value) {
-            _present = true;
-            _value = *value;
-        } else {
-            _present = false;
-        }
+        char szIP[16] = {};
+        char * ptr = szIP;
+        uint32_t temp1 = src.uint32;
+        uint32_t temp2 = temp1 >> 8;
+        uint32_t byte4 = temp1 - (temp2 << 8);
+        temp1 = temp2 >> 8;
+        uint32_t byte3 = temp2 - (temp1 << 8);
+        temp2 = temp1 >> 8;
+        uint32_t byte2 = temp1 - (temp2 << 8);
+        temp1 = temp2 >> 8;
+        uint32_t byte1 = temp2 - (temp1 << 8);
+        ptr = uint8ToStr(byte1, ptr);
+        *ptr = '.';
+        ptr++;
+        ptr = uint8ToStr(byte2, ptr);
+        *ptr = '.';
+        ptr++;
+        ptr = uint8ToStr(byte3, ptr);
+        *ptr = '.';
+        ptr++;
+        ptr = uint8ToStr(byte4, ptr);
+        return dest.set(szIP);
     }
 
 }

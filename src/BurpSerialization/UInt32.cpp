@@ -4,47 +4,28 @@ namespace BurpSerialization
 {
 
     UInt32::UInt32(const StatusCodes statusCodes) :
-        _value({.uint32=0}),
-        _present(false),
         _statusCodes(statusCodes)
     {}
 
-    BurpStatus::Status::Code UInt32::deserialize(const JsonVariant & serialized) {
-        _present = false;
-        _value.uint32 = 0;
-        if (serialized.isNull()) {
+    BurpStatus::Status::Code UInt32::deserialize(Value & dest, const JsonVariant & src) {
+        dest.isNull = true;
+        if (src.isNull()) {
             return _statusCodes.notPresent;
         }
-        if (serialized.is<uint32_t>()) {
-            _present = true;
-            _value.uint32 = serialized.as<uint32_t>();
+        if (src.is<uint32_t>()) {
+            dest.isNull = false;
+            dest.uint32 = src.as<uint32_t>();
             return _statusCodes.ok;
         }
         return _statusCodes.wrongType;
     }
 
-    bool UInt32::serialize(const JsonVariant & serialized) const {
-        if (_present) {
-            return serialized.set(_value.uint32);
+    bool UInt32::serialize(const JsonVariant & dest, const Value & src) const {
+        if (src.isNull) {
+            dest.clear();
+            return true;
         }
-        serialized.clear();
-        return true;
-    }
-
-    const Value * UInt32::get() const {
-        if (_present) {
-            return &_value;
-        }
-        return nullptr;
-    }
-
-    void UInt32::set(const Value * value) {
-        if (value) {
-            _present = true;
-            _value = *value;
-        } else {
-            _present = false;
-        }
+        return dest.set(src.uint32);
     }
 
 }

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "ValueList.hpp"
+#include <array>
+#include "Value.hpp"
 #include "Field.hpp"
 
 namespace BurpSerialization
@@ -23,69 +24,45 @@ namespace BurpSerialization
             Field * field;
         };
         using Entries = std::array<Entry, entryCount>;
-        using List = ValueList<entryCount>;
+        using List = std::array<Value, entryCount>;
 
         Object(const Entries entries, const StatusCodes statusCodes) :
             _entries(entries),
-            _list({}),
-            _value({.valueList=_list.data()}),
-            _present(false),
             _statusCodes(statusCodes)
         {}
 
-        BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override {
-            _present = false;
-            if (serialized.isNull()) {
+        BurpStatus::Status::Code deserialize(Value & dest, const JsonVariant & src) override {
+            dest.isNull = true;
+            if (src.isNull()) {
                 return _statusCodes.notPresent;
             }
-            if (serialized.is<JsonObject>()) {
+            if (src.is<JsonObject>()) {
                 for (size_t index = 0; index < entryCount; index++) {
                     auto entry = _entries[index];
-                    auto code = entry.field->deserialize(serialized[entry.name]);
+                    auto code = entry.field->deserialize(dest.valueList[index], src[entry.name]);
                     if (code != _statusCodes.ok) return code;
-                    _list[index] = entry.field->get();
                 }
-                _present = true;
+                dest.isNull = false;
                 return _statusCodes.ok;
             }
             return _statusCodes.wrongType;
         }
 
-        bool serialize(const JsonVariant & serialized) const override {
-            if (_present) {
-                for (size_t index = 0; index < entryCount; index++) {
-                    auto entry = _entries[index];
-                    entry.field->set(_list[index]);
-                    if (!entry.field->serialize(serialized[entry.name].template to<JsonVariant>())) return false;
-                }
+        bool serialize(const JsonVariant & dest, const Value & src) const override {
+            if (src.isNull) {
+                dest.clear();
                 return true;
             }
-            serialized.clear();
+            for (size_t index = 0; index < entryCount; index++) {
+                auto entry = _entries[index];
+                if (!entry.field->serialize(dest[entry.name].template to<JsonVariant>(), src.valueList[index])) return false;
+            }
             return true;
-        }
-
-        const Value * get() const override {
-            if (_present) {
-                return &_value;
-            }
-            return nullptr;
-        }
-
-        void set(const Value * value) override {
-            if (value && value->valueList) {
-                _present = true;
-                std::copy_n(value->valueList, _list.size(), _list.begin());
-            } else {
-                _present = false;
-            }
         }
 
     private:
 
         const Entries _entries;
-        List _list;
-        const Value _value;
-        bool _present;
         const StatusCodes _statusCodes;
 
     };

@@ -1,37 +1,26 @@
 #include "TestField.hpp"
 
 TestField::TestField(const StatusCodes statusCodes) :
-    _statusCodes(statusCodes),
-    _value({.cstr=nullptr})
+    _statusCodes(statusCodes)
 {}
 
-BurpStatus::Status::Code TestField::deserialize(const JsonVariant & serialized) {
-    _value.cstr = nullptr;
-    if (serialized.isNull()) {
+BurpStatus::Status::Code TestField::deserialize(BurpSerialization::Value & dest, const JsonVariant & src) {
+    dest.isNull = true;
+    if (src.isNull()) {
         return _statusCodes.notPresent;
     }
-    if (serialized.is<const char *>()) {
-        _value.cstr = serialized.as<const char *>();
+    if (src.is<const char *>()) {
+        dest.isNull = false;
+        dest.cstr = src.as<const char *>();
         return _statusCodes.ok;
     }
     return _statusCodes.wrongType;
 }
 
-bool TestField::serialize(const JsonVariant & serialized) const {
-    return serialized.set(_value.cstr);
-}
-
-const BurpSerialization::Value * TestField::get() const {
-    if (_value.cstr) {
-        return &_value;
+bool TestField::serialize(const JsonVariant & dest, const BurpSerialization::Value & src) const {
+    if (src.isNull) {
+        dest.clear();
+        return true;
     }
-    return nullptr;
-}
-
-void TestField::set(const BurpSerialization::Value * value) {
-    if (value && value->cstr) {
-        _value = *value;
-    } else {
-        _value.cstr = nullptr;
-    }
+    return dest.set(src.cstr);
 }

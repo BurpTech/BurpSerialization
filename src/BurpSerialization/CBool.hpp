@@ -18,15 +18,11 @@ namespace BurpSerialization
 
         CBool(const StatusCodes statusCodes);
 
-        BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override;
-        bool serialize(const JsonVariant & serialized) const override;
-        const Value * get() const override;
-        void set(const Value * value) override;
+        BurpStatus::Status::Code deserialize(Value & dest, const JsonVariant & src) override;
+        bool serialize(const JsonVariant & dest, const Value & src) const override;
 
     private:
 
-        Value _value;
-        bool _present;
         const StatusCodes _statusCodes;
 
     };

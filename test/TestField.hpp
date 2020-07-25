@@ -11,14 +11,11 @@ class TestField : public BurpSerialization::Field {
         };
 
         TestField(const StatusCodes statusCodes);
-        BurpStatus::Status::Code deserialize(const JsonVariant & serialized) override;
-        bool serialize(const JsonVariant & serialized) const override;
-        const BurpSerialization::Value * get() const override;
-        void set(const BurpSerialization::Value * value) override;
+        BurpStatus::Status::Code deserialize(BurpSerialization::Value & dest, const JsonVariant & src) override;
+        bool serialize(const JsonVariant & dest, const BurpSerialization::Value & src) const override;
 
     private:
 
         const StatusCodes _statusCodes;
-        BurpSerialization::Value _value;
 
 };

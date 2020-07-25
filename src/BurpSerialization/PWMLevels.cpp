@@ -9,69 +9,51 @@ namespace BurpSerialization
             statusCodes.levelNotPresent,
             statusCodes.levelWrongType
         }),
-        _list({}),
-        _value({.uint8List=_list.data()}),
-        _present(false),
         _statusCodes(statusCodes)
     {}
 
-    BurpStatus::Status::Code PWMLevels::deserialize(const JsonVariant & serialized) {
-        _present = false;
-        _list.fill({});
-        if (serialized.isNull()) {
+    BurpStatus::Status::Code PWMLevels::deserialize(Value & dest, const JsonVariant & src) {
+        dest.isNull = true;
+        if (src.isNull()) {
             return _statusCodes.notPresent;
         }
-        if (serialized.is<JsonArray>()) {
-            auto jsonArray = serialized.as<JsonArray>();
+        if (src.is<JsonArray>()) {
+            auto jsonArray = src.as<JsonArray>();
             auto size = jsonArray.size();
             uint8_t lastLevel = 0;
             if (size > maxLevels) {
                 return _statusCodes.tooLong;
             }
+            Value value;
             for (size_t index = 0; index < size; index++) {
-                auto code = _field.deserialize(jsonArray[index]);
+                auto code = _field.deserialize(value, jsonArray[index]);
                 if (code != _statusCodes.ok) return code;
-                auto level = _field.get()->uint8;
+                auto level = value.isNull ? 0 : value.uint8;
                 if (level == 0) return _statusCodes.levelZero;
                 if (level <= lastLevel) return _statusCodes.levelNotIncreasing;
                 lastLevel = level;
-                _list[index] = level;
+                dest.uint8List[index] = level;
             }
-            _present = true;
+            dest.isNull = false;
             return _statusCodes.ok;
         }
         return _statusCodes.wrongType;
     }
 
-    bool PWMLevels::serialize(const JsonVariant & serialized) const {
-        if (_present) {
-            auto jsonArray = serialized.to<JsonArray>();
-            for (auto level : _list) {
-                if (level == 0) return true;
-                auto success = jsonArray.add(level);
-                if (!success) return false;
-            }
-            // not zero terminated
-            return false;
+    bool PWMLevels::serialize(const JsonVariant & dest, const Value & src) const {
+        if (src.isNull) {
+            dest.clear();
+            return true;
         }
-        serialized.clear();
-        return true;
-    }
-
-    const Value * PWMLevels::get() const {
-        if (_present) {
-            return &_value;
+        auto jsonArray = dest.to<JsonArray>();
+        for (size_t index = 0; index < maxLevels + 1; index++) {
+            auto level = src.uint8List[index];
+            if (level == 0) return true;
+            auto success = jsonArray.add(level);
+            if (!success) return false;
         }
-        return nullptr;
-    }
-
-    void PWMLevels::set(const Value * value) {
-        if (value && value->uint8List) {
-            _present = true;
-            std::copy_n(value->uint8List, _list.size(), _list.begin());
-        } else {
-            _present = false;
-        }
+        // not zero terminated
+        return false;
     }
 
 }
