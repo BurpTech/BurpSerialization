@@ -11,7 +11,7 @@ class TestField : public BurpSerialization::Field {
         };
 
         TestField(const StatusCodes statusCodes);
-        BurpStatus::Status::Code deserialize(BurpSerialization::Value & dest, const JsonVariant & src) override;
+        BurpStatus::Status::Code deserialize(BurpSerialization::Value & dest, const JsonVariant & src) const override;
         bool serialize(const JsonVariant & dest, const BurpSerialization::Value & src) const override;
 
     private:

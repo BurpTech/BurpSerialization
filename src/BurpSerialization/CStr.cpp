@@ -8,7 +8,7 @@ namespace BurpSerialization
         _statusCodes(statusCodes)
     {}
 
-    BurpStatus::Status::Code CStr::deserialize(Value & dest, const JsonVariant & src) {
+    BurpStatus::Status::Code CStr::deserialize(Value & dest, const JsonVariant & src) const {
         dest.isNull = true;
         if (src.isNull()) {
             return _statusCodes.notPresent;

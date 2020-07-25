@@ -4,7 +4,7 @@ TestField::TestField(const StatusCodes statusCodes) :
     _statusCodes(statusCodes)
 {}
 
-BurpStatus::Status::Code TestField::deserialize(BurpSerialization::Value & dest, const JsonVariant & src) {
+BurpStatus::Status::Code TestField::deserialize(BurpSerialization::Value & dest, const JsonVariant & src) const {
     dest.isNull = true;
     if (src.isNull()) {
         return _statusCodes.notPresent;

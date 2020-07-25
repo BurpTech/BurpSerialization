@@ -31,7 +31,7 @@ namespace BurpSerialization
             _statusCodes(statusCodes)
         {}
 
-        BurpStatus::Status::Code deserialize(Value & dest, const JsonVariant & src) override {
+        BurpStatus::Status::Code deserialize(Value & dest, const JsonVariant & src) const override {
             dest.isNull = true;
             if (src.isNull()) {
                 return _statusCodes.notPresent;
