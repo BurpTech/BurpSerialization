@@ -18,8 +18,7 @@ namespace BurpSerialization
             if (strlen(value) > _length) {
                 return _statusCodes.tooLong;
             }
-            dest.isNull = false;
-            dest.cstr = value;
+            dest = value;
             return _statusCodes.ok;
         }
         return _statusCodes.wrongType;

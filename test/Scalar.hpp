@@ -2,7 +2,7 @@
 
 #include <BurpUnity.hpp>
 
-namespace UInt32 {
+namespace Scalar {
     
   extern Module tests;
 

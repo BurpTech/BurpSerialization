@@ -23,20 +23,16 @@
 #include <unity.h>
 #include <BurpUnity.hpp>
 
-#include "CStr.hpp"
-#include "CBool.hpp"
-#include "UInt8.hpp"
-#include "UInt32.hpp"
 #include "Object.hpp"
+#include "Scalar.hpp"
+#include "CStr.hpp"
 #include "PWMLevels.hpp"
 #include "IPv4.hpp"
 
-Runner<7> runner({
-    &CStr::tests,
-    &CBool::tests,
-    &UInt8::tests,
-    &UInt32::tests,
+Runner<5> runner({
     &Object::tests,
+    &Scalar::tests,
+    &CStr::tests,
     &PWMLevels::tests,
     &IPv4::tests
 });

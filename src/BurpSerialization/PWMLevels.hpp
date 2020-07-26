@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include "UInt8.hpp"
+#include "Scalar.hpp"
 #include "Field.hpp"
 
 namespace BurpSerialization
@@ -33,7 +33,7 @@ namespace BurpSerialization
 
     private:
 
-        UInt8 _field;
+        Scalar<uint8_t> _field;
         const StatusCodes _statusCodes;
 
     };
