@@ -5,6 +5,7 @@
 
 namespace Object {
 
+    constexpr size_t docSize = 128;
     constexpr size_t entryCount = 3;
     constexpr char fieldName[] = "field";
     constexpr char fieldOneName[] = "one";
@@ -64,73 +65,63 @@ namespace Object {
         wrongType
     });
 
-    StaticJsonDocument<128> emptyDoc;
-    StaticJsonDocument<128> invalidDoc;
-    StaticJsonDocument<128> missingFieldTwoDoc;
-    StaticJsonDocument<128> invalidFieldThreeDoc;
-    StaticJsonDocument<128> validDoc;
-    StaticJsonDocument<128> serializedDoc;
-    StaticJsonDocument<1> tinyDoc;
-
     Module tests("Object", [](Describe & d) {
-        d.before([]() {
-            invalidDoc[fieldName] = invalidCStr;
-            missingFieldTwoDoc[fieldName][fieldOneName] = validOneCStr;
-            missingFieldTwoDoc[fieldName][fieldThreeName] = validThreeCStr;
-            invalidFieldThreeDoc[fieldName][fieldOneName] = validOneCStr;
-            invalidFieldThreeDoc[fieldName][fieldTwoName] = validTwoCStr;
-            invalidFieldThreeDoc[fieldName][fieldThreeName] = invalidCStr;
-            validDoc[fieldName][fieldOneName] = validOneCStr;
-            validDoc[fieldName][fieldTwoName] = validTwoCStr;
-            validDoc[fieldName][fieldThreeName] = validThreeCStr;
-        });
-
-        d.beforeEach([]() {
-            serializedDoc.clear();
-        });
-
         d.describe("deserialize", [](Describe & d) {
             d.describe("when not present", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<1> doc;
                     Object::List list;
                     BurpSerialization::Value value = {true, {.valueList=list.data()}};
-                    auto code = object.deserialize(value, emptyDoc[fieldName]);
+                    auto code = object.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(notPresent, code);
                 });
             });
             d.describe("with an invalid value", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName] = invalidCStr;
                     Object::List list;
                     BurpSerialization::Value value = {true, {.valueList=list.data()}};
-                    auto code = object.deserialize(value, invalidDoc[fieldName]);
+                    auto code = object.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(wrongType, code);
                 });
             });
             d.describe("when a sub field is not present", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName][fieldOneName] = validOneCStr;
+                    doc[fieldName][fieldThreeName] = validThreeCStr;
                     Object::List list;
                     BurpSerialization::Value value = {true, {.valueList=list.data()}};
-                    auto code = object.deserialize(value, missingFieldTwoDoc[fieldName]);
+                    auto code = object.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(fieldTwoNotPresent, code);
                 });
             });
             d.describe("when a sub field is invalid", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName][fieldOneName] = validOneCStr;
+                    doc[fieldName][fieldTwoName] = validTwoCStr;
+                    doc[fieldName][fieldThreeName] = invalidCStr;
                     Object::List list;
                     BurpSerialization::Value value = {true, {.valueList=list.data()}};
-                    auto code = object.deserialize(value, invalidFieldThreeDoc[fieldName]);
+                    auto code = object.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(fieldThreeWrongType, code);
                 });
             });
             d.describe("with a valid object", [](Describe & d) {
                 d.it("should have the correct values", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName][fieldOneName] = validOneCStr;
+                    doc[fieldName][fieldTwoName] = validTwoCStr;
+                    doc[fieldName][fieldThreeName] = validThreeCStr;
                     Object::List list;
                     BurpSerialization::Value value = {true, {.valueList=list.data()}};
-                    auto code = object.deserialize(value, validDoc[fieldName]);
+                    auto code = object.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_FALSE(value.isNull);
                     auto valueOne = list[0];
                     TEST_ASSERT_FALSE(valueOne.isNull);
@@ -149,24 +140,27 @@ namespace Object {
         d.describe("serialize", [](Describe & d) {
             d.describe("with a value that is too big for the document", [](Describe & d) {
                 d.it("should fail", []() {
-                    auto success = object.serialize(tinyDoc[fieldName].to<JsonVariant>(), validValue);
+                    StaticJsonDocument<1> doc;
+                    auto success = object.serialize(doc[fieldName].to<JsonVariant>(), validValue);
                     TEST_ASSERT_FALSE(success);
                 });
             });
             d.describe("without a value", [](Describe & d) {
                 d.it("should set the value in the JSON document to NULL", []() {
-                    auto success = object.serialize(serializedDoc[fieldName].to<JsonVariant>(), nullValue);
+                    StaticJsonDocument<docSize> doc;
+                    auto success = object.serialize(doc[fieldName].to<JsonVariant>(), nullValue);
                     TEST_ASSERT_TRUE(success);
-                    TEST_ASSERT_TRUE(serializedDoc[fieldName].isNull());
+                    TEST_ASSERT_TRUE(doc[fieldName].isNull());
                 });
             });
             d.describe("with values", [](Describe & d) {
                 d.it("should set the value in the JSON document", []() {
-                    auto success = object.serialize(serializedDoc[fieldName].to<JsonVariant>(), validValue);
+                    StaticJsonDocument<docSize> doc;
+                    auto success = object.serialize(doc[fieldName].to<JsonVariant>(), validValue);
                     TEST_ASSERT_TRUE(success);
-                    TEST_ASSERT_EQUAL_STRING(validOneCStr, serializedDoc[fieldName][fieldOneName]);
-                    TEST_ASSERT_EQUAL_STRING(validTwoCStr, serializedDoc[fieldName][fieldTwoName]);
-                    TEST_ASSERT_EQUAL_STRING(validThreeCStr, serializedDoc[fieldName][fieldThreeName]);
+                    TEST_ASSERT_EQUAL_STRING(validOneCStr, doc[fieldName][fieldOneName]);
+                    TEST_ASSERT_EQUAL_STRING(validTwoCStr, doc[fieldName][fieldTwoName]);
+                    TEST_ASSERT_EQUAL_STRING(validThreeCStr, doc[fieldName][fieldThreeName]);
                 });
             });
         });

@@ -5,6 +5,7 @@
 
 namespace Scalar {
 
+    constexpr size_t docSize = 128;
     constexpr char fieldName[] = "field";
 
     enum : BurpStatus::Status::Code {
@@ -39,30 +40,27 @@ namespace Scalar {
                 _values[index].description = value.description;
                 _values[index].typedValue = value.value;
                 _values[index].value = value.value;
-                _values[index].doc[fieldName] = value.value;
             }
-            _invalidDoc[fieldName] = "hello";
         }
 
         void test(Describe & d) {
             d.describe(_description, [&](Describe & d){
-                d.beforeEach([&]() {
-                    _serializedDoc.clear();
-                });
-
                 d.describe("deserialize", [&](Describe & d) {
                     d.describe("when not present", [&](Describe & d) {
                         d.it("should fail and not be present", [&]() {
+                            StaticJsonDocument<1> doc;
                             BurpSerialization::Value value;
-                            auto code = _scalar.deserialize(value, _emptyDoc[fieldName]);
+                            auto code = _scalar.deserialize(value, doc[fieldName]);
                             TEST_ASSERT_TRUE(value.isNull);
                             TEST_ASSERT_EQUAL(notPresent, code);
                         });
                     });
                     d.describe("with an invalid value", [&](Describe & d) {
                         d.it("should fail and not be present", [&]() {
+                            StaticJsonDocument<docSize> doc;
+                            doc[fieldName] = "hello";
                             BurpSerialization::Value value;
-                            auto code = _scalar.deserialize(value, _invalidDoc[fieldName]);
+                            auto code = _scalar.deserialize(value, doc[fieldName]);
                             TEST_ASSERT_TRUE(value.isNull);
                             TEST_ASSERT_EQUAL(wrongType, code);
                         });
@@ -71,8 +69,10 @@ namespace Scalar {
                     for (auto & internalValue : _values) {
                         d.describe(internalValue.description, [&](Describe & d) {
                             d.it("should not fail and have the correct value", [&]() {
+                                StaticJsonDocument<docSize> doc;
+                                doc[fieldName] = internalValue.typedValue;
                                 BurpSerialization::Value value;
-                                auto code = _scalar.deserialize(value, internalValue.doc[fieldName]);
+                                auto code = _scalar.deserialize(value, doc[fieldName]);
                                 TEST_ASSERT_FALSE(value.isNull);
                                 TEST_ASSERT_EQUAL(internalValue.typedValue, _get(value));
                                 TEST_ASSERT_EQUAL(ok, code);
@@ -87,7 +87,8 @@ namespace Scalar {
                         for (auto & internalValue : _values) {
                             d.describe(internalValue.description, [&](Describe & d) {
                                 d.it("should fail", [&]() {
-                                    auto success = _scalar.serialize(_tinyDoc[fieldName].template to<JsonVariant>(), internalValue.value);
+                                    StaticJsonDocument<1> doc;
+                                    auto success = _scalar.serialize(doc[fieldName].template to<JsonVariant>(), internalValue.value);
                                     TEST_ASSERT_FALSE(success);
                                 });
                             });
@@ -97,19 +98,21 @@ namespace Scalar {
                         for (auto & internalValue : _values) {
                             d.describe(internalValue.description, [&](Describe & d) {
                                 d.it("should set the value in the JSON document", [&]() {
-                                    auto success = _scalar.serialize(_serializedDoc[fieldName].template to<JsonVariant>(), internalValue.value);
+                                    StaticJsonDocument<docSize> doc;
+                                    auto success = _scalar.serialize(doc[fieldName].template to<JsonVariant>(), internalValue.value);
                                     TEST_ASSERT_TRUE(success);
-                                    TEST_ASSERT_EQUAL(internalValue.typedValue, _serializedDoc[fieldName]);
+                                    TEST_ASSERT_EQUAL(internalValue.typedValue, doc[fieldName].template as<Type>());
                                 });
                             });
                         }
                     });
                     d.describe("without a value", [&](Describe & d) {
                         d.it("should set the value in the JSON document to NULL", [&]() {
-                            _serializedDoc[fieldName] = "hello";
-                            auto success = _scalar.serialize(_serializedDoc[fieldName].template to<JsonVariant>(), _nullValue);
+                            StaticJsonDocument<docSize> doc;
+                            doc[fieldName] = "hello";
+                            auto success = _scalar.serialize(doc[fieldName].template to<JsonVariant>(), {true});
                             TEST_ASSERT_TRUE(success);
-                            TEST_ASSERT_TRUE(_serializedDoc[fieldName].isNull());
+                            TEST_ASSERT_TRUE(doc[fieldName].isNull());
                         });
                     });
                 });
@@ -122,25 +125,18 @@ namespace Scalar {
             const char * description;
             Type typedValue;
             BurpSerialization::Value value;
-            StaticJsonDocument<docSize> doc;
         };
         using InternalValues = std::array<InternalValue, valueCount>;
 
         using Scalar = BurpSerialization::Scalar<Type>;
         Scalar _scalar;
-
         const char * _description;
         f_get _get;
         InternalValues _values;
-        StaticJsonDocument<1> _emptyDoc;
-        StaticJsonDocument<docSize> _invalidDoc;
-        StaticJsonDocument<docSize> _serializedDoc;
-        StaticJsonDocument<1> _tinyDoc;
-        const BurpSerialization::Value _nullValue = {true};
 
     };
 
-    using CBoolTests = Tests<bool, 2, 128>;
+    using CBoolTests = Tests<bool, 2, docSize>;
     CBoolTests cboolTests(
         "CBool",
         CBoolTests::Values({
@@ -150,7 +146,7 @@ namespace Scalar {
         [](BurpSerialization::Value value) {return value.cbool;}
     );
 
-    using UInt8Tests = Tests<uint8_t, 2, 128>;
+    using UInt8Tests = Tests<uint8_t, 2, docSize>;
     UInt8Tests uint8Tests(
         "UInt8",
         UInt8Tests::Values({
@@ -160,7 +156,7 @@ namespace Scalar {
         [](BurpSerialization::Value value) {return value.uint8;}
     );
 
-    using UInt16Tests = Tests<uint16_t, 2, 128>;
+    using UInt16Tests = Tests<uint16_t, 2, docSize>;
     UInt16Tests uint16Tests(
         "UInt16",
         UInt16Tests::Values({
@@ -170,7 +166,7 @@ namespace Scalar {
         [](BurpSerialization::Value value) {return value.uint16;}
     );
 
-    using UInt32Tests = Tests<uint32_t, 2, 128>;
+    using UInt32Tests = Tests<uint32_t, 2, docSize>;
     UInt32Tests uint32Tests(
         "UInt32",
         UInt32Tests::Values({
@@ -180,7 +176,7 @@ namespace Scalar {
         [](BurpSerialization::Value value) {return value.uint32;}
     );
 
-    using Int8Tests = Tests<int8_t, 2, 128>;
+    using Int8Tests = Tests<int8_t, 2, docSize>;
     Int8Tests int8Tests(
         "Int8",
         Int8Tests::Values({
@@ -190,7 +186,7 @@ namespace Scalar {
         [](BurpSerialization::Value value) {return value.int8;}
     );
 
-    using Int16Tests = Tests<int16_t, 2, 128>;
+    using Int16Tests = Tests<int16_t, 2, docSize>;
     Int16Tests int16Tests(
         "Int16",
         Int16Tests::Values({
@@ -200,7 +196,7 @@ namespace Scalar {
         [](BurpSerialization::Value value) {return value.int16;}
     );
 
-    using Int32Tests = Tests<int32_t, 2, 128>;
+    using Int32Tests = Tests<int32_t, 2, docSize>;
     Int32Tests int32Tests(
         "Int32",
         Int32Tests::Values({

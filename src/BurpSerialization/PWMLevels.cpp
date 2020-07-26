@@ -25,14 +25,19 @@ namespace BurpSerialization
                 return _statusCodes.tooLong;
             }
             Value value;
-            for (size_t index = 0; index < size; index++) {
-                auto code = _field.deserialize(value, jsonArray[index]);
-                if (code != _statusCodes.ok) return code;
-                auto level = value.isNull ? 0 : value.uint8;
-                if (level == 0) return _statusCodes.levelZero;
-                if (level <= lastLevel) return _statusCodes.levelNotIncreasing;
-                lastLevel = level;
-                dest.uint8List[index] = level;
+            for (size_t index = 0; index < maxLevels + 1; index++) {
+                if (index < size) {
+                    auto code = _field.deserialize(value, jsonArray[index]);
+                    if (code != _statusCodes.ok) return code;
+                    auto level = value.isNull ? 0 : value.uint8;
+                    if (level == 0) return _statusCodes.levelZero;
+                    if (level <= lastLevel) return _statusCodes.levelNotIncreasing;
+                    lastLevel = level;
+                    dest.uint8List[index] = level;
+                } else {
+                    // initialize to zeros to ensure zero termination
+                    dest.uint8List[index] = 0;
+                }
             }
             dest.isNull = false;
             return _statusCodes.ok;

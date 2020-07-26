@@ -4,6 +4,7 @@
 
 namespace IPv4 {
 
+    constexpr size_t docSize = 128;
     constexpr char fieldName[] = "field";
     constexpr int wrongTypeIPv4 = 100;
     constexpr char invalidCharacterIPv4[] = "100hello";
@@ -35,83 +36,73 @@ namespace IPv4 {
         excessCharacters
     });
 
-    StaticJsonDocument<128> emptyDoc;
-    StaticJsonDocument<128> wrongTypeDoc;
-    StaticJsonDocument<128> invalidCharacterDoc;
-    StaticJsonDocument<128> outOfRangeDoc;
-    StaticJsonDocument<128> missingByteDoc;
-    StaticJsonDocument<128> excessCharactersDoc;
-    StaticJsonDocument<128> validDoc;
-    StaticJsonDocument<128> serializedDoc;
-    StaticJsonDocument<1> tinyDoc;
-
     Module tests("IPv4", [](Describe & d) {
-        d.before([]() {
-            wrongTypeDoc[fieldName] = wrongTypeIPv4;
-            invalidCharacterDoc[fieldName] = invalidCharacterIPv4;
-            outOfRangeDoc[fieldName] = outOfRangeIPv4;
-            missingByteDoc[fieldName] = missingByteIPv4;
-            excessCharactersDoc[fieldName] = excessCharactersIPv4;
-            validDoc[fieldName] = validIPv4;
-        });
-
-        d.beforeEach([]() {
-            serializedDoc.clear();
-        });
-
         d.describe("deserialize", [](Describe & d) {
             d.describe("when not present", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<1> doc;
                     BurpSerialization::Value value;
-                    auto code = ipv4.deserialize(value, emptyDoc[fieldName]);
+                    auto code = ipv4.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(notPresent, code);
                 });
             });
             d.describe("with a value of the wrong type", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName] = wrongTypeIPv4;
                     BurpSerialization::Value value;
-                    auto code = ipv4.deserialize(value, wrongTypeDoc[fieldName]);
+                    auto code = ipv4.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(wrongType, code);
                 });
             });
             d.describe("with an unparseable value", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName] = invalidCharacterIPv4;
                     BurpSerialization::Value value;
-                    auto code = ipv4.deserialize(value, invalidCharacterDoc[fieldName]);
+                    auto code = ipv4.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(invalidCharacter, code);
                 });
             });
             d.describe("with an out of range value", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName] = outOfRangeIPv4;
                     BurpSerialization::Value value;
-                    auto code = ipv4.deserialize(value, outOfRangeDoc[fieldName]);
+                    auto code = ipv4.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(outOfRange, code);
                 });
             });
             d.describe("with a missing byte", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName] = missingByteIPv4;
                     BurpSerialization::Value value;
-                    auto code = ipv4.deserialize(value, missingByteDoc[fieldName]);
+                    auto code = ipv4.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(missingByte, code);
                 });
             });
             d.describe("with too many bytes", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName] = excessCharactersIPv4;
                     BurpSerialization::Value value;
-                    auto code = ipv4.deserialize(value, excessCharactersDoc[fieldName]);
+                    auto code = ipv4.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_TRUE(value.isNull);
                     TEST_ASSERT_EQUAL(excessCharacters, code);
                 });
             });
             d.describe("with a valid value", [](Describe & d) {
                 d.it("should not fail and have the correct value", []() {
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName] = validIPv4;
                     BurpSerialization::Value value;
-                    auto code = ipv4.deserialize(value, validDoc[fieldName]);
+                    auto code = ipv4.deserialize(value, doc[fieldName]);
                     TEST_ASSERT_FALSE(value.isNull);
                     TEST_ASSERT_EQUAL(validUInt32, value.uint32);
                     TEST_ASSERT_EQUAL(ok, code);
@@ -122,23 +113,26 @@ namespace IPv4 {
         d.describe("serialize", [](Describe & d) {
             d.describe("with a value that is too big for the document", [](Describe & d) {
                 d.it("should fail", []() {
-                    auto success = ipv4.serialize(tinyDoc[fieldName].to<JsonVariant>(), validValue);
+                    StaticJsonDocument<1> doc;
+                    auto success = ipv4.serialize(doc[fieldName].to<JsonVariant>(), validValue);
                     TEST_ASSERT_FALSE(success);
                 });
             });
             d.describe("without a value", [](Describe & d) {
                 d.it("should set the value in the JSON document to NULL", []() {
-                    serializedDoc[fieldName] = true;
-                    auto success = ipv4.serialize(serializedDoc[fieldName].to<JsonVariant>(), nullValue);
+                    StaticJsonDocument<docSize> doc;
+                    doc[fieldName] = true;
+                    auto success = ipv4.serialize(doc[fieldName].to<JsonVariant>(), nullValue);
                     TEST_ASSERT_TRUE(success);
-                    TEST_ASSERT_TRUE(serializedDoc[fieldName].isNull());
+                    TEST_ASSERT_TRUE(doc[fieldName].isNull());
                 });
             });
             d.describe("with a valid value", [](Describe & d) {
                 d.it("should set the value in the JSON document", []() {
-                    auto success = ipv4.serialize(serializedDoc[fieldName].to<JsonVariant>(), validValue);
+                    StaticJsonDocument<docSize> doc;
+                    auto success = ipv4.serialize(doc[fieldName].to<JsonVariant>(), validValue);
                     TEST_ASSERT_TRUE(success);
-                    TEST_ASSERT_EQUAL_STRING(validIPv4, serializedDoc[fieldName]);
+                    TEST_ASSERT_EQUAL_STRING(validIPv4, doc[fieldName]);
                 });
             });
         });
