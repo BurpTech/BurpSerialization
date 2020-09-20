@@ -10,6 +10,11 @@ namespace BurpSerialization
 
     public:
 
+        struct Value {
+            bool isNull;
+            uint32_t value;
+        };
+
         struct StatusCodes {
             const BurpStatus::Status::Code ok;
             const BurpStatus::Status::Code notPresent; // set to ok if not required
@@ -20,14 +25,15 @@ namespace BurpSerialization
             const BurpStatus::Status::Code excessCharacters;
         };
 
-        IPv4(const StatusCodes statusCodes);
+        IPv4(const StatusCodes statusCodes, Value & value);
 
-        BurpStatus::Status::Code deserialize(Value & dest, const JsonVariant & src) const override;
-        bool serialize(const JsonVariant & dest, const Value & src) const override;
+        BurpStatus::Status::Code deserialize(const JsonVariant & serialized) const override;
+        bool serialize(const JsonVariant & serialized) const override;
 
     private:
 
         const StatusCodes _statusCodes;
+        Value & _value;
 
     };
     

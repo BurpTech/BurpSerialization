@@ -15,6 +15,11 @@ namespace BurpSerialization
         static constexpr size_t maxLevels = 255;
         using List = std::array<uint8_t, maxLevels + 1>;
 
+        struct Value {
+            bool isNull;
+            List list;
+        };
+
         struct StatusCodes {
             const BurpStatus::Status::Code ok;
             const BurpStatus::Status::Code notPresent; // set to ok if not required
@@ -26,15 +31,17 @@ namespace BurpSerialization
             const BurpStatus::Status::Code levelWrongType;
         };
 
-        PWMLevels(const StatusCodes statusCodes);
+        PWMLevels(const StatusCodes statusCodes, Value & value);
 
-        BurpStatus::Status::Code deserialize(Value & dest, const JsonVariant & src) const override;
-        bool serialize(const JsonVariant & dest, const Value & src) const override;
+        BurpStatus::Status::Code deserialize(const JsonVariant & serialized) const override;
+        bool serialize(const JsonVariant & serialized) const override;
 
     private:
 
-        Scalar<uint8_t> _field;
+        Scalar<uint8_t> _uint8Field;
+        Scalar<uint8_t>::Value _temp;
         const StatusCodes _statusCodes;
+        Value & _value;
 
     };
     

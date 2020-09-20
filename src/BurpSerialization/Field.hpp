@@ -2,7 +2,6 @@
 
 #include <ArduinoJson.h>
 #include <BurpStatus.hpp>
-#include "Value.hpp"
 
 namespace BurpSerialization
 {
@@ -11,8 +10,8 @@ namespace BurpSerialization
 
     public:
 
-        virtual BurpStatus::Status::Code deserialize(Value & dest, const JsonVariant & src) const = 0;
-        virtual bool serialize(const JsonVariant & dest, const Value & src) const = 0;
+        virtual BurpStatus::Status::Code deserialize(const JsonVariant & src) const = 0;
+        virtual bool serialize(const JsonVariant & dest) const = 0;
 
     };
     

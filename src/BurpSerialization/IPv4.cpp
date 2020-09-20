@@ -54,32 +54,33 @@ namespace BurpSerialization
         return statusCodes.ok;
     }
 
-    IPv4::IPv4(const StatusCodes statusCodes) :
-        _statusCodes(statusCodes)
+    IPv4::IPv4(const StatusCodes statusCodes, Value & value) :
+        _statusCodes(statusCodes),
+        _value(value)
     {}
 
-    BurpStatus::Status::Code IPv4::deserialize(Value & dest, const JsonVariant & src) const {
-        dest.isNull = true;
-        if (src.isNull()) {
+    BurpStatus::Status::Code IPv4::deserialize(const JsonVariant & serialized) const {
+        _value.isNull = true;
+        if (serialized.isNull()) {
             return _statusCodes.notPresent;
         }
-        if (src.is<const char *>()) {
-            auto code = strToIPv4(src.as<const char *>(), &(dest.uint32), _statusCodes);
+        if (serialized.is<const char *>()) {
+            auto code = strToIPv4(serialized.as<const char *>(), &(_value.value), _statusCodes);
             if (code != _statusCodes.ok) return code;
-            dest.isNull = false;
+            _value.isNull = false;
             return _statusCodes.ok;
         }
         return _statusCodes.wrongType;
     }
 
-    bool IPv4::serialize(const JsonVariant & dest, const Value & src) const {
-        if (src.isNull) {
-            dest.clear();
+    bool IPv4::serialize(const JsonVariant & serialized) const {
+        if (_value.isNull) {
+            serialized.clear();
             return true;
         }
         char szIP[16] = {};
         char * ptr = szIP;
-        uint32_t temp1 = src.uint32;
+        uint32_t temp1 = _value.value;
         uint32_t temp2 = temp1 >> 8;
         uint32_t byte4 = temp1 - (temp2 << 8);
         temp1 = temp2 >> 8;
@@ -98,7 +99,7 @@ namespace BurpSerialization
         *ptr = '.';
         ptr++;
         ptr = uint8ToStr(byte4, ptr);
-        return dest.set(szIP);
+        return serialized.set(szIP);
     }
 
 }

@@ -1,5 +1,6 @@
 #include <unity.h>
 #include "../src/BurpSerialization/PWMLevels.hpp"
+#include "../src/BurpSerialization/Serialization.hpp"
 #include "PWMLevels.hpp"
 
 namespace PWMLevels {
@@ -7,39 +8,46 @@ namespace PWMLevels {
     constexpr size_t docSize = 10000;
     constexpr char fieldName[] = "field";
     constexpr char invalidLevel[] = "hello";
-    constexpr BurpSerialization::Value nullValue = {true};
-
     BurpSerialization::PWMLevels::List longList = {};
-    BurpSerialization::Value longValue = {false, {.uint8List=longList.data()}};
-
     BurpSerialization::PWMLevels::List fullList = {};
-    BurpSerialization::Value fullValue = {false, {.uint8List=fullList.data()}};
-
     BurpSerialization::PWMLevels::List shortList = {};
-    BurpSerialization::Value shortValue = {false, {.uint8List=shortList.data()}};
 
-    enum : BurpStatus::Status::Code {
-        ok,
-        notPresent,
-        wrongType,
-        tooLong,
-        levelZero,
-        levelNotIncreasing,
-        levelNotPresent,
-        levelWrongType
+    class Serialization : public BurpSerialization::Serialization {
+
+        public:
+
+            enum : BurpStatus::Status::Code {
+                ok,
+                notPresent,
+                wrongType,
+                tooLong,
+                levelZero,
+                levelNotIncreasing,
+                levelNotPresent,
+                levelWrongType
+            };
+
+            BurpSerialization::PWMLevels::Value pwmLevels;
+
+            Serialization() :
+                BurpSerialization::Serialization(_pwmLevels),
+                _pwmLevels({
+                    ok,
+                    notPresent,
+                    wrongType,
+                    tooLong,
+                    levelZero,
+                    levelNotIncreasing,
+                    levelNotPresent,
+                    levelWrongType
+                }, pwmLevels)
+            {}
+
+        private:
+
+            const BurpSerialization::PWMLevels _pwmLevels;
+
     };
-
-    BurpSerialization::PWMLevels pwmLevels({
-        ok,
-        notPresent,
-        wrongType,
-        tooLong,
-        levelZero,
-        levelNotIncreasing,
-        levelNotPresent,
-        levelWrongType
-    });
-
 
     Module tests("PWMLevels", [](Describe & d) {
         d.before([]() {
@@ -57,120 +65,111 @@ namespace PWMLevels {
         d.describe("deserialize", [](Describe & d) {
             d.describe("when not present", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
-                    BurpSerialization::PWMLevels::List list;
-                    BurpSerialization::Value value = {true, {.uint8List=list.data()}};
-                    auto code = pwmLevels.deserialize(value, doc[fieldName]);
-                    TEST_ASSERT_TRUE(value.isNull);
-                    TEST_ASSERT_EQUAL(notPresent, code);
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_TRUE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(Serialization::notPresent, code);
                 });
             });
             d.describe("with an invalid value", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
                     doc[fieldName] = invalidLevel;
-                    BurpSerialization::PWMLevels::List list;
-                    BurpSerialization::Value value = {true, {.uint8List=list.data()}};
-                    auto code = pwmLevels.deserialize(value, doc[fieldName]);
-                    TEST_ASSERT_TRUE(value.isNull);
-                    TEST_ASSERT_EQUAL(wrongType, code);
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_TRUE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(Serialization::wrongType, code);
                 });
             });
             d.describe("when the array is too long", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
                     for (size_t index = 0; index < BurpSerialization::PWMLevels::maxLevels + 1; index++) {
                         doc[fieldName].add(index + 1);
                     }
-                    BurpSerialization::PWMLevels::List list;
-                    BurpSerialization::Value value = {true, {.uint8List=list.data()}};
-                    auto code = pwmLevels.deserialize(value, doc[fieldName]);
-                    TEST_ASSERT_TRUE(value.isNull);
-                    TEST_ASSERT_EQUAL(tooLong, code);
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_TRUE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(Serialization::tooLong, code);
                 });
             });
             d.describe("when a level is not increasing", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
                     doc[fieldName].add(1);
                     doc[fieldName].add(1);
                     doc[fieldName].add(2);
-                    BurpSerialization::PWMLevels::List list;
-                    BurpSerialization::Value value = {true, {.uint8List=list.data()}};
-                    auto code = pwmLevels.deserialize(value, doc[fieldName]);
-                    TEST_ASSERT_TRUE(value.isNull);
-                    TEST_ASSERT_EQUAL(levelNotIncreasing, code);
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_TRUE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(Serialization::levelNotIncreasing, code);
                 });
             });
             d.describe("when a level is zero", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
                     doc[fieldName].add(1);
                     doc[fieldName].add(0);
                     doc[fieldName].add(2);
-                    BurpSerialization::PWMLevels::List list;
-                    BurpSerialization::Value value = {true, {.uint8List=list.data()}};
-                    auto code = pwmLevels.deserialize(value, doc[fieldName]);
-                    TEST_ASSERT_TRUE(value.isNull);
-                    TEST_ASSERT_EQUAL(levelZero, code);
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_TRUE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(Serialization::levelZero, code);
                 });
             });
             d.describe("when a level is missing", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
                     doc[fieldName].add(1);
                     doc[fieldName].add(nullptr);
                     doc[fieldName].add(2);
-                    BurpSerialization::PWMLevels::List list;
-                    BurpSerialization::Value value = {true, {.uint8List=list.data()}};
-                    auto code = pwmLevels.deserialize(value, doc[fieldName]);
-                    TEST_ASSERT_TRUE(value.isNull);
-                    TEST_ASSERT_EQUAL(levelNotPresent, code);
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_TRUE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(Serialization::levelNotPresent, code);
                 });
             });
             d.describe("when a level is invalid", [](Describe & d) {
                 d.it("should fail and not be present", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
                     doc[fieldName].add(1);
                     doc[fieldName].add(invalidLevel);
                     doc[fieldName].add(2);
-                    BurpSerialization::PWMLevels::List list;
-                    BurpSerialization::Value value = {true, {.uint8List=list.data()}};
-                    auto code = pwmLevels.deserialize(value, doc[fieldName]);
-                    TEST_ASSERT_TRUE(value.isNull);
-                    TEST_ASSERT_EQUAL(levelWrongType, code);
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_TRUE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(Serialization::levelWrongType, code);
                 });
             });
             d.describe("with a full array", [](Describe & d) {
                 d.it("should have the correct values", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
                     for (size_t index = 0; index < BurpSerialization::PWMLevels::maxLevels; index++) {
                         doc[fieldName].add(index + 1);
                     }
-                    BurpSerialization::PWMLevels::List list;
-                    BurpSerialization::Value value = {true, {.uint8List=list.data()}};
-                    auto code = pwmLevels.deserialize(value, doc[fieldName]);
-                    TEST_ASSERT_FALSE(value.isNull);
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_FALSE(serialization.pwmLevels.isNull);
                     for (size_t index = 0; index < fullList.size(); index++) {
-                        TEST_ASSERT_EQUAL(fullList[index], list[index]);
+                        TEST_ASSERT_EQUAL(fullList[index], serialization.pwmLevels.list[index]);
                     }
-                    TEST_ASSERT_EQUAL(ok, code);
+                    TEST_ASSERT_EQUAL(Serialization::ok, code);
                 });
             });
             d.describe("with a short array", [](Describe & d) {
                 d.it("should have the correct values", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
                     for (size_t index = 0; index < BurpSerialization::PWMLevels::maxLevels - 1; index++) {
                         doc[fieldName].add(index + 1);
                     }
-                    BurpSerialization::PWMLevels::List list;
-                    BurpSerialization::Value value = {true, {.uint8List=list.data()}};
-                    auto code = pwmLevels.deserialize(value, doc[fieldName]);
-                    TEST_ASSERT_FALSE(value.isNull);
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_FALSE(serialization.pwmLevels.isNull);
                     for (size_t index = 0; index < shortList.size(); index++) {
-                        TEST_ASSERT_EQUAL(shortList[index], list[index]);
+                        TEST_ASSERT_EQUAL(shortList[index], serialization.pwmLevels.list[index]);
                     }
-                    TEST_ASSERT_EQUAL(ok, code);
+                    TEST_ASSERT_EQUAL(Serialization::ok, code);
                 });
             });
         });
@@ -178,30 +177,41 @@ namespace PWMLevels {
         d.describe("serialize", [](Describe & d) {
             d.describe("with a value that is too big for the document", [](Describe & d) {
                 d.it("should fail", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(1);
-                    auto success = pwmLevels.serialize(doc[fieldName].to<JsonVariant>(), fullValue);
+                    serialization.pwmLevels.isNull = false;
+                    serialization.pwmLevels.list = fullList;
+                    auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_FALSE(success);
                 });
             });
             d.describe("without a value", [](Describe & d) {
                 d.it("should set the value in the JSON document to NULL", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
-                    auto success = pwmLevels.serialize(doc[fieldName].to<JsonVariant>(), nullValue);
+                    serialization.pwmLevels.isNull = true;
+                    auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);
                     TEST_ASSERT_TRUE(doc[fieldName].isNull());
                 });
             });
             d.describe("with a long list of values", [](Describe & d) {
                 d.it("should fail", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
-                    auto success = pwmLevels.serialize(doc[fieldName].to<JsonVariant>(), longValue);
+                    serialization.pwmLevels.isNull = false;
+                    serialization.pwmLevels.list = longList;
+                    auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_FALSE(success);
                 });
             });
             d.describe("with a full list of values", [](Describe & d) {
                 d.it("should set the value in the JSON document", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
-                    auto success = pwmLevels.serialize(doc[fieldName].to<JsonVariant>(), fullValue);
+                    serialization.pwmLevels.isNull = false;
+                    serialization.pwmLevels.list = fullList;
+                    auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);
                     for (size_t index = 0; index < BurpSerialization::PWMLevels::maxLevels; index++) {
                         TEST_ASSERT_EQUAL(fullList[index], doc[fieldName][index]);
@@ -211,8 +221,11 @@ namespace PWMLevels {
             });
             d.describe("with a short list of values", [](Describe & d) {
                 d.it("should set the value in the JSON document", []() {
+                    Serialization serialization;
                     DynamicJsonDocument doc(docSize);
-                    auto success = pwmLevels.serialize(doc[fieldName].to<JsonVariant>(), shortValue);
+                    serialization.pwmLevels.isNull = false;
+                    serialization.pwmLevels.list = shortList;
+                    auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);
                     for (size_t index = 0; index < BurpSerialization::PWMLevels::maxLevels - 1; index++) {
                         TEST_ASSERT_EQUAL(shortList[index], doc[fieldName][index]);

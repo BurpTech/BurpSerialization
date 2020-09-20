@@ -10,12 +10,13 @@ class TestField : public BurpSerialization::Field {
             BurpStatus::Status::Code wrongType;
         };
 
-        TestField(const StatusCodes statusCodes);
-        BurpStatus::Status::Code deserialize(BurpSerialization::Value & dest, const JsonVariant & src) const override;
-        bool serialize(const JsonVariant & dest, const BurpSerialization::Value & src) const override;
+        TestField(const StatusCodes statusCodes, const char *& value);
+        BurpStatus::Status::Code deserialize(const JsonVariant & src) const override;
+        bool serialize(const JsonVariant & dest) const override;
 
     private:
 
         const StatusCodes _statusCodes;
+        const char *& _value;
 
 };

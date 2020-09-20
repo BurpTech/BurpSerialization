@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include "Value.hpp"
 #include "Field.hpp"
 
 namespace BurpSerialization
@@ -21,41 +20,40 @@ namespace BurpSerialization
 
         struct Entry {
             const char * name;
-            Field * field;
+            const Field * field;
         };
         using Entries = std::array<Entry, entryCount>;
-        using List = std::array<Value, entryCount>;
 
-        Object(const Entries entries, const StatusCodes statusCodes) :
+        Object(const Entries entries, const StatusCodes statusCodes, bool & isNull) :
             _entries(entries),
-            _statusCodes(statusCodes)
+            _statusCodes(statusCodes),
+            _isNull(isNull)
         {}
 
-        BurpStatus::Status::Code deserialize(Value & dest, const JsonVariant & src) const override {
-            dest.isNull = true;
-            if (src.isNull()) {
+        BurpStatus::Status::Code deserialize(const JsonVariant & serialized) const override {
+            _isNull = true;
+            if (serialized.isNull()) {
                 return _statusCodes.notPresent;
             }
-            if (src.is<JsonObject>()) {
-                for (size_t index = 0; index < entryCount; index++) {
-                    auto entry = _entries[index];
-                    auto code = entry.field->deserialize(dest.valueList[index], src[entry.name]);
-                    if (code != _statusCodes.ok) return code;
+            if (serialized.is<JsonObject>()) {
+                auto ret = _statusCodes.ok;
+                for (auto entry : _entries) {
+                    auto code = entry.field->deserialize(serialized[entry.name]);
+                    if (code != _statusCodes.ok) ret = code;
                 }
-                dest.isNull = false;
-                return _statusCodes.ok;
+                _isNull = false;
+                return ret;
             }
             return _statusCodes.wrongType;
         }
 
-        bool serialize(const JsonVariant & dest, const Value & src) const override {
-            if (src.isNull) {
-                dest.clear();
+        bool serialize(const JsonVariant & serialized) const override {
+            if (_isNull) {
+                serialized.clear();
                 return true;
             }
-            for (size_t index = 0; index < entryCount; index++) {
-                auto entry = _entries[index];
-                if (!entry.field->serialize(dest[entry.name].template to<JsonVariant>(), src.valueList[index])) return false;
+            for (auto entry : _entries) {
+                if (!entry.field->serialize(serialized[entry.name].template to<JsonVariant>())) return false;
             }
             return true;
         }
@@ -64,6 +62,7 @@ namespace BurpSerialization
 
         const Entries _entries;
         const StatusCodes _statusCodes;
+        bool & _isNull;
 
     };
     

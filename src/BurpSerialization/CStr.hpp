@@ -17,15 +17,16 @@ namespace BurpSerialization
             const BurpStatus::Status::Code tooLong;
         };
 
-        CStr(const size_t length, const StatusCodes statusCodes);
+        CStr(const size_t length, const StatusCodes statusCodes, const char *& value);
 
-        BurpStatus::Status::Code deserialize(Value & dest, const JsonVariant & src) const override;
-        bool serialize(const JsonVariant & dest, const Value & src) const override;
+        BurpStatus::Status::Code deserialize(const JsonVariant & serialized) const override;
+        bool serialize(const JsonVariant & serialized) const override;
 
     private:
 
         const size_t _length;
         const StatusCodes _statusCodes;
+        const char *& _value;
 
     };
     

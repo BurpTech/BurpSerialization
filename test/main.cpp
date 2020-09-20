@@ -23,18 +23,18 @@
 #include <unity.h>
 #include <BurpUnity.hpp>
 
-#include "Object.hpp"
 #include "Scalar.hpp"
 #include "CStr.hpp"
-#include "PWMLevels.hpp"
 #include "IPv4.hpp"
+#include "PWMLevels.hpp"
+#include "Object.hpp"
 
 Runner<5> runner({
-    &Object::tests,
     &Scalar::tests,
     &CStr::tests,
+    &IPv4::tests,
     &PWMLevels::tests,
-    &IPv4::tests
+    &Object::tests,
 });
 Memory memory;
 bool running = true;
