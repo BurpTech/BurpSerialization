@@ -25,13 +25,15 @@
 
 #include "Scalar.hpp"
 #include "CStr.hpp"
+#include "CStrMap.hpp"
 #include "IPv4.hpp"
 #include "PWMLevels.hpp"
 #include "Object.hpp"
 
-Runner<5> runner({
+Runner<6> runner({
     &Scalar::tests,
     &CStr::tests,
+    &CStrMap::tests,
     &IPv4::tests,
     &PWMLevels::tests,
     &Object::tests,

@@ -129,7 +129,6 @@ namespace IPv4 {
                 d.it("should fail", []() {
                     Serialization serialization;
                     StaticJsonDocument<1> doc;
-                    serialization.ipv4.isNull = false;
                     serialization.ipv4.value = validUInt32;
                     auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_FALSE(success);
@@ -150,7 +149,6 @@ namespace IPv4 {
                 d.it("should set the value in the JSON document", []() {
                     Serialization serialization;
                     StaticJsonDocument<docSize> doc;
-                    serialization.ipv4.isNull = false;
                     serialization.ipv4.value = validUInt32;
                     auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);

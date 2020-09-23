@@ -21,6 +21,7 @@ namespace PWMLevels {
                 notPresent,
                 wrongType,
                 tooLong,
+                tooShort,
                 levelZero,
                 levelNotIncreasing,
                 levelNotPresent,
@@ -36,6 +37,7 @@ namespace PWMLevels {
                     notPresent,
                     wrongType,
                     tooLong,
+                    tooShort,
                     levelZero,
                     levelNotIncreasing,
                     levelNotPresent,
@@ -92,6 +94,16 @@ namespace PWMLevels {
                     auto code = serialization.deserialize(doc[fieldName]);
                     TEST_ASSERT_TRUE(serialization.pwmLevels.isNull);
                     TEST_ASSERT_EQUAL(Serialization::tooLong, code);
+                });
+            });
+            d.describe("when the array is too short", [](Describe & d) {
+                d.it("should fail and not be present", []() {
+                    Serialization serialization;
+                    DynamicJsonDocument doc(docSize);
+                    doc[fieldName].to<JsonArray>();
+                    auto code = serialization.deserialize(doc[fieldName]);
+                    TEST_ASSERT_TRUE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(Serialization::tooShort, code);
                 });
             });
             d.describe("when a level is not increasing", [](Describe & d) {
@@ -151,6 +163,7 @@ namespace PWMLevels {
                     }
                     auto code = serialization.deserialize(doc[fieldName]);
                     TEST_ASSERT_FALSE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(BurpSerialization::PWMLevels::maxLevels, serialization.pwmLevels.length);
                     for (size_t index = 0; index < fullList.size(); index++) {
                         TEST_ASSERT_EQUAL(fullList[index], serialization.pwmLevels.list[index]);
                     }
@@ -166,6 +179,7 @@ namespace PWMLevels {
                     }
                     auto code = serialization.deserialize(doc[fieldName]);
                     TEST_ASSERT_FALSE(serialization.pwmLevels.isNull);
+                    TEST_ASSERT_EQUAL(BurpSerialization::PWMLevels::maxLevels - 1, serialization.pwmLevels.length);
                     for (size_t index = 0; index < shortList.size(); index++) {
                         TEST_ASSERT_EQUAL(shortList[index], serialization.pwmLevels.list[index]);
                     }
@@ -179,7 +193,6 @@ namespace PWMLevels {
                 d.it("should fail", []() {
                     Serialization serialization;
                     DynamicJsonDocument doc(1);
-                    serialization.pwmLevels.isNull = false;
                     serialization.pwmLevels.list = fullList;
                     auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_FALSE(success);
@@ -199,7 +212,6 @@ namespace PWMLevels {
                 d.it("should fail", []() {
                     Serialization serialization;
                     DynamicJsonDocument doc(docSize);
-                    serialization.pwmLevels.isNull = false;
                     serialization.pwmLevels.list = longList;
                     auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_FALSE(success);
@@ -209,7 +221,6 @@ namespace PWMLevels {
                 d.it("should set the value in the JSON document", []() {
                     Serialization serialization;
                     DynamicJsonDocument doc(docSize);
-                    serialization.pwmLevels.isNull = false;
                     serialization.pwmLevels.list = fullList;
                     auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);
@@ -223,7 +234,6 @@ namespace PWMLevels {
                 d.it("should set the value in the JSON document", []() {
                     Serialization serialization;
                     DynamicJsonDocument doc(docSize);
-                    serialization.pwmLevels.isNull = false;
                     serialization.pwmLevels.list = shortList;
                     auto success = serialization.serialize(doc[fieldName].to<JsonVariant>());
                     TEST_ASSERT_TRUE(success);

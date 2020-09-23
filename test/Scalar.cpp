@@ -99,7 +99,6 @@ namespace Scalar {
                                 d.it("should fail", [&]() {
                                     Serialization<Type> serialization;
                                     StaticJsonDocument<1> doc;
-                                    serialization.scalar.isNull = false;
                                     serialization.scalar.value = scenario.value;
                                     auto success = serialization.serialize(doc[fieldName].template to<JsonVariant>());
                                     TEST_ASSERT_FALSE(success);
@@ -113,7 +112,6 @@ namespace Scalar {
                                 d.it("should set the value in the JSON document", [&]() {
                                     Serialization<Type> serialization;
                                     StaticJsonDocument<docSize> doc;
-                                    serialization.scalar.isNull = false;
                                     serialization.scalar.value = scenario.value;
                                     auto success = serialization.serialize(doc[fieldName].template to<JsonVariant>());
                                     TEST_ASSERT_TRUE(success);

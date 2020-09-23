@@ -11,8 +11,8 @@ namespace BurpSerialization
     public:
 
         struct Value {
-            bool isNull;
-            uint32_t value;
+            bool isNull = false;
+            uint32_t value = 0;
         };
 
         struct StatusCodes {

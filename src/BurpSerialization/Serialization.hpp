@@ -12,7 +12,7 @@ namespace BurpSerialization {
             bool serialize(const JsonVariant & dest) const;
             BurpStatus::Status::Code deserialize(const JsonVariant & src);
 
-        protected:
+        private:
 
             const Field & _root;
 

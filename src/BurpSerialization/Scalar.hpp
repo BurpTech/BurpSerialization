@@ -13,8 +13,8 @@ namespace BurpSerialization
     public:
 
         struct Value {
-            bool isNull;
-            Type value;
+            bool isNull = false;
+            Type value = 0;
         };
 
         struct StatusCodes {

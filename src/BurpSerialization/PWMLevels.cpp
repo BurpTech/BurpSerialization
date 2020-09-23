@@ -25,6 +25,9 @@ namespace BurpSerialization
             if (size > maxLevels) {
                 return _statusCodes.tooLong;
             }
+            if (size == 0) {
+                return _statusCodes.tooShort;
+            }
             for (size_t index = 0; index < maxLevels + 1; index++) {
                 if (index < size) {
                     auto code = _uint8Field.deserialize(jsonArray[index]);
@@ -40,6 +43,7 @@ namespace BurpSerialization
                 }
             }
             _value.isNull = false;
+            _value.length = size;
             return _statusCodes.ok;
         }
         return _statusCodes.wrongType;

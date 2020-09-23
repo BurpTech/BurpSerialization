@@ -16,8 +16,9 @@ namespace BurpSerialization
         using List = std::array<uint8_t, maxLevels + 1>;
 
         struct Value {
-            bool isNull;
-            List list;
+            bool isNull = false;
+            List list = {0};
+            uint8_t length = 0;
         };
 
         struct StatusCodes {
@@ -25,6 +26,7 @@ namespace BurpSerialization
             const BurpStatus::Status::Code notPresent; // set to ok if not required
             const BurpStatus::Status::Code wrongType;
             const BurpStatus::Status::Code tooLong;
+            const BurpStatus::Status::Code tooShort;
             const BurpStatus::Status::Code levelZero;
             const BurpStatus::Status::Code levelNotIncreasing;
             const BurpStatus::Status::Code levelNotPresent;
