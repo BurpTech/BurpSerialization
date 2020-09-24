@@ -3,8 +3,14 @@
 namespace BurpSerialization
 {
 
-    CStr::CStr(const size_t length, const StatusCodes statusCodes, const char *& value) :
-        _length(length),
+    CStr::CStr(
+        const size_t minLength,
+        const size_t maxLength,
+        const StatusCodes statusCodes,
+        const char *& value
+    ) :
+        _minLength(minLength),
+        _maxLength(maxLength),
         _statusCodes(statusCodes),
         _value(value)
     {}
@@ -16,7 +22,10 @@ namespace BurpSerialization
         }
         if (serialized.is<const char *>()) {
             auto value = serialized.as<const char *>();
-            if (strlen(value) > _length) {
+            if (strlen(value) < _minLength) {
+                return _statusCodes.tooShort;
+            }
+            if (strlen(value) > _maxLength) {
                 return _statusCodes.tooLong;
             }
             _value = value;
