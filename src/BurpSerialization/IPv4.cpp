@@ -23,16 +23,16 @@ namespace BurpSerialization
         return dest + 1;
     }
 
-    BurpStatus::Status::Code strToUInt8(const char * src, uint32_t * dest, const char ** endPtr, IPv4::StatusCodes statusCodes) {
+    BurpStatus::Status::Code strToUInt8(const char *& pos, uint32_t * dest, IPv4::StatusCodes statusCodes) {
         uint16_t value = 0;
-        *endPtr = src;
-        while (**endPtr >= '0' && **endPtr <= '9') {
+        auto start = pos;
+        while (*pos >= '0' && *pos <= '9') {
             value *= 10;
-            value += (**endPtr) - '0';
-            (*endPtr)++;
+            value += (*pos) - '0';
+            pos++;
             if (value > 255) return statusCodes.outOfRange;
         }
-        if (*endPtr == src) return statusCodes.missingField;
+        if (pos == start) return statusCodes.missingField;
         *dest += value;
         return statusCodes.ok;
     }
@@ -40,11 +40,11 @@ namespace BurpSerialization
     BurpStatus::Status::Code strToIPv4(const char * src, uint32_t * dest, IPv4::StatusCodes statusCodes) {
         *dest = 0;
         auto pos = src;
-        for (uint8_t field = 0; field < 4; field++) {
+        for (uint8_t field = 0; field < IPV4_BYTE_COUNT; field++) {
             *dest *= 256;
-            auto code = strToUInt8(pos, dest, &pos, statusCodes);
+            auto code = strToUInt8(pos, dest, statusCodes);
             if (code != statusCodes.ok) return code;
-            if (field < 3) {
+            if (field < IPV4_BYTE_COUNT - 1) {
                 if (*pos != '.') return statusCodes.invalidCharacter;
             } else {
                 if (*pos != 0) return statusCodes.excessCharacters;
@@ -79,7 +79,7 @@ namespace BurpSerialization
             return true;
         }
         char szIP[16] = {};
-        char * ptr = szIP;
+        char * pos = szIP;
         uint32_t temp1 = _value.value;
         uint32_t temp2 = temp1 >> 8;
         uint32_t byte4 = temp1 - (temp2 << 8);
@@ -89,16 +89,16 @@ namespace BurpSerialization
         uint32_t byte2 = temp1 - (temp2 << 8);
         temp1 = temp2 >> 8;
         uint32_t byte1 = temp2 - (temp1 << 8);
-        ptr = uint8ToStr(byte1, ptr);
-        *ptr = '.';
-        ptr++;
-        ptr = uint8ToStr(byte2, ptr);
-        *ptr = '.';
-        ptr++;
-        ptr = uint8ToStr(byte3, ptr);
-        *ptr = '.';
-        ptr++;
-        ptr = uint8ToStr(byte4, ptr);
+        pos = uint8ToStr(byte1, pos);
+        *pos = '.';
+        pos++;
+        pos = uint8ToStr(byte2, pos);
+        *pos = '.';
+        pos++;
+        pos = uint8ToStr(byte3, pos);
+        *pos = '.';
+        pos++;
+        pos = uint8ToStr(byte4, pos);
         return serialized.set(szIP);
     }
 

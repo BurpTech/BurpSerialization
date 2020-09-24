@@ -27,14 +27,16 @@
 #include "CStr.hpp"
 #include "CStrMap.hpp"
 #include "IPv4.hpp"
+#include "MacAddress.hpp"
 #include "PWMLevels.hpp"
 #include "Object.hpp"
 
-Runner<6> runner({
+Runner<7> runner({
     &Scalar::tests,
     &CStr::tests,
     &CStrMap::tests,
     &IPv4::tests,
+    &MacAddress::tests,
     &PWMLevels::tests,
     &Object::tests,
 });
