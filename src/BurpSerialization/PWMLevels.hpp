@@ -17,7 +17,7 @@ namespace BurpSerialization
 
         struct Value {
             bool isNull = false;
-            List list = {0};
+            List list;
             uint8_t length = 0;
         };
 
